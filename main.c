@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
+#include <time.h>
 
 #define MAX_PILOTES 22
+#define ID_PROJET 'P'
+#define MAX_TOURS 44
 
 int genTime(const int min, const int max) {
     srand (time(NULL));
@@ -25,6 +29,9 @@ int main(int argc, char const *argv[])
      * S => Secteur
      * best => Meilleur temps
      */
+
+	struct Pilote;
+	struct Essais;
 
     typedef struct Pilote {
 
@@ -88,13 +95,13 @@ int main(int argc, char const *argv[])
 
 
 
-	key_t key = 5; // Clé
-	size_t count = 1024; // Taille
+	key_t key; // Clé
+    key = ftok(argv[0], ID_PROJET); // argv[O], nom du programme lancé, ID (char)
 	int perm = 0644; // Permissions
 
 	int shmid = 0; // Shared Memory ID
 
-	shmid = shmget(key, count, 0644);
+	shmid = shmget(key, sizeof(Pilote), 0666);
 
 	if (shmid == -1) {
 		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
@@ -104,7 +111,13 @@ int main(int argc, char const *argv[])
     for (int i=0; i < MAX_PILOTES; i++) {
 
         if (fork() == 0) {
-            return 0;
+
+			for (int i = 0; i < MAX_TOURS; i++) {
+
+
+
+			}			            
+
         }
 
     }
