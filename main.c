@@ -3,8 +3,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-int genTime(const int max) {
-	return rand() % max + 1; // Generate number between 0 and max
+int genTime(const int min, const int max) {
+    srand (time(NULL));
+    return ((rand() % (max-min)) + min); // Generate number between min and max
 }
 
 int main(int argc, char const *argv[])
