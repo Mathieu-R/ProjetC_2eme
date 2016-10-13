@@ -34,7 +34,7 @@ int main()
     
     for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
     {
-        printf("%s%d%s%d%s\n" ,"voiture n°", j+1,": ", cars[j],"s"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
+        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", j+1,": ", cars[j],"s (",cars[j]/60,"m",cars[j]%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
         cumulatedTime =+ cars[j];
         
     }
@@ -46,7 +46,7 @@ int main()
             currentBestCar = k+1; // Le numéro de la première voiture du tableau est 1 (d'ou k+1)
         } 
     }
-    printf("%s%d%s%d%s\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime,"s"); // affiche la meilleure voiture et son temps
+    printf("%s%d%s%d%s%d%s\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
     
     return 0;
 }
