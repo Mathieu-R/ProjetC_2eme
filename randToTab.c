@@ -3,9 +3,9 @@
 #include <time.h>
 
 int main()
-{    
-    int cars[pool]; // tab de temps - !! ce tableau correspond au contenu des structures voitures de la SM !! -
+{        
     int pool = 20; // nombre de voitures
+    int cars[pool]; // tab de temps - !! ce tableau correspond au contenu des structures voitures de la SM !! -
     /**
     *  autre approche: définir un temps moyen et un taux de déviation par rapport à la moyenne.
     *  int average = 700; // moyenne de temps
@@ -31,7 +31,9 @@ int main()
     {
         cars[i] = limitedRand(minTime, maxTime);
     }
-    
+
+    //Les boucles suivantes sont séparées car elles représentent des fonctions différentes du code final.
+
     for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
     {
         printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", j+1,": ", cars[j],"s (",cars[j]/60,"m",cars[j]%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
