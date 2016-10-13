@@ -6,7 +6,7 @@
 #include <sys/sem.h>
 #include <time.h>
 
-#define MAX_PILOTES 22
+#define MAX_PILOTES 23
 #define ID_PROJET 'P'
 #define MAX_TOURS 44
 
@@ -19,6 +19,9 @@ int main(int argc, char const *argv[])
 {
 
     typedef enum { false, true } bool; // Structure qui simule un boolean
+
+    int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94};
+    struct pilote pilotes[MAX_PILOTES];
     
     /**
      * 1 processus par pilote !!
@@ -108,14 +111,15 @@ int main(int argc, char const *argv[])
 		return 0;
 	}*/
 
-    for (int i=0; i < MAX_PILOTES; i++) {
+    for (int i=0; i < MAX_PILOTES - 1; i++) {
 
         if (fork() == 0) {
 
+            pilotes[i] = Pilote pilote; // Instance de la struct
+            pilotes[i].pilote_id = pilotes_numbers[i]; // Initialise le numéro du pilote
+
 			for (int i = 0; i < MAX_TOURS; i++) {
-
-
-
+                
 			}			            
 
         }
