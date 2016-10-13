@@ -23,7 +23,7 @@ int main()
     
     for (int j = 0; j<pool; j++) // affichage (inutile dans le code final)
     {
-        printf("%s%d%s%d\n " ,"voiture n°", j+1,": ", cars[j]);
+        printf("%s%d%s%d%s\n " ,"voiture n°", j+1,": ", cars[j],"s");
     }
     
     return 0;
