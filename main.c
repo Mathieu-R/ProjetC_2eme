@@ -17,6 +17,8 @@ int genTime(const int min, const int max) {
 
 int main(int argc, char const *argv[])
 {
+
+    typedef enum { false, true } bool; // Structure qui simule un boolean
     
     /**
      * 1 processus par pilote !!
@@ -40,9 +42,9 @@ int main(int argc, char const *argv[])
 
 	typedef struct Essais {
         
-        struct S1;
-        struct S2;
-        struct S3;
+        struct S1 S1;
+        struct S2 S2;
+        struct S3 S3;
 
         int best; // Best Full Time Lap
         bool isPit; // Si le pilote est aux stands
@@ -51,9 +53,9 @@ int main(int argc, char const *argv[])
 
     typedef struct Qualifs {
         
-        struct S1;
-        struct S2;
-        struct S3;
+        struct S1 S1;
+        struct S2 S2;
+        struct S3 S3;
 
         int best; // Best Full Time Lap
         bool isPit;
@@ -63,9 +65,9 @@ int main(int argc, char const *argv[])
 
     typedef struct Course {
         
-        struct S1;
-        struct S2;
-        struct S3;
+        struct S1 S1;
+        struct S2 S2;
+        struct S3 S3;
 
         int best; // Best Full Time Lap
         bool isPit;
@@ -84,9 +86,9 @@ int main(int argc, char const *argv[])
 
         int pilote_id;
 
-        struct Essais; // Struct pour les Essais
-        struct Qualifs; // Struct pour les Qualifs
-        struct Course; // Struct pour la Course
+        struct Essais Essais; // Struct pour les Essais
+        struct Qualifs Qualifs; // Struct pour les Qualifs
+        struct Course Course; // Struct pour la Course
       
 
     } Pilote;
