@@ -95,8 +95,8 @@ int main(int argc, char const *argv[])
 
 
 
-	key_t key; // Clé
-    key = ftok(argv[0], ID_PROJET); // argv[O], nom du programme lancé, ID (char)
+	/*key_t key; // Clé
+    key = ftok(argv[0], ID_PROJET); // argv[O] => nom du programme lancé, ID (char)
 	int perm = 0644; // Permissions
 
 	int shmid = 0; // Shared Memory ID
@@ -106,7 +106,7 @@ int main(int argc, char const *argv[])
 	if (shmid == -1) {
 		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
 		return 0;
-	}
+	}*/
 
     for (int i=0; i < MAX_PILOTES; i++) {
 
