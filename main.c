@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
@@ -16,11 +17,60 @@ int genTime(const int min, const int max) {
 
 int main(int argc, char const *argv[])
 {
+    
     /**
      * 1 processus par pilote !!
      * Fork
      */
+    
+    typedef struct S1 {
+        int S1; // Temps S1
+        int bestS1; // Meilleur S1
+    } S1;
 
+    typedef struct S2 {
+        int S2; // Temps S2
+        int bestS2; // Meilleur S2
+    } S2;
+
+    typedef struct S3 {
+        int S3; // Temps S3
+        int bestS3; // Meilleur S3
+    } S3;
+
+	typedef struct Essais {
+        
+        struct S1;
+        struct S2;
+        struct S3;
+
+        int best; // Best Full Time Lap
+        bool isPit; // Si le pilote est aux stands
+        bool isOut; // Si le pilote a abandonné
+    } Essais;
+
+    typedef struct Qualifs {
+        
+        struct S1;
+        struct S2;
+        struct S3;
+
+        int best; // Best Full Time Lap
+        bool isPit;
+        bool isOut;
+    } Qualifs;
+
+
+    typedef struct Course {
+        
+        struct S1;
+        struct S2;
+        struct S3;
+
+        int best; // Best Full Time Lap
+        bool isPit;
+        bool isOut;
+    } Course;
 
     /**
      * Struct Pilote
@@ -30,66 +80,14 @@ int main(int argc, char const *argv[])
      * best => Meilleur temps
      */
 
-	struct Pilote;
-	struct Essais;
-
     typedef struct Pilote {
 
         int pilote_id;
 
-        typedef struct Essais {
-                typedef struct S1 {
-                    int S1;
-                    int bestS1;
-                } S1;
-                typedef struct S2 {
-                    int S2;
-                    int bestS2;
-                } S2;
-                typedef struct S3 {
-                    int S3;
-                    int bestS3;
-                } S3;
-                int best; // Best Full Time Lap
-                bool isPit;
-                bool isOut;
-        } Essais;
-
-        typedef struct Qualifs {
-            typedef struct S1 {
-                int S1;
-                int bestS1;
-            } S1;
-            typedef struct S2 {
-                int S2;
-                int bestS2;
-            } S2;
-            typedef struct S3 {
-                int S3;
-                int bestS3;
-            } S3;
-            int best; // Best Full Time Lap
-            bool isPit;
-            bool isOut;
-        } Qualifs;
-
-        typedef struct Course {
-            typedef struct S1 {
-                int S1;
-                int bestS1;
-            } S1;
-            typedef struct S2 {
-                int S2;
-                int bestS2;
-            } S2;
-            typedef struct S3 {
-                int S3;
-                int bestS3;
-            } S3;
-            int best; // Best Full Time Lap
-            bool isPit;
-            bool isOut;
-        } Course;
+        struct Essais; // Struct pour les Essais
+        struct Qualifs; // Struct pour les Qualifs
+        struct Course; // Struct pour la Course
+      
 
     } Pilote;
 
