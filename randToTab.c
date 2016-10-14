@@ -5,14 +5,14 @@
 int main()
 {     
     // Création de la structure (devra etre importée depuis SM)
-    int pool = 20; // nombre de voitures
+    int pool = 20; // nombre de voitures (obtenir cette valeur depuis la SM si possible)
     typedef struct car 
     {
         int num;
         int s1;
     }car;
     struct car cars[pool]; // tab de structures - !!
-    for (int i = 0; i<pool; i++)
+    for (int i = 0; i<pool; i++) // rempli la structure pour tester le code (sera importé de la SM dans le code final)
     {
         cars[i].num=i+1;
     }
@@ -28,36 +28,14 @@ int main()
     int cumulatedTime;
     int currentBestCar;
     int currentBestTime = maxTime + 1;
-    int effectiveAverage;
     srand ( time(NULL) );
     
+// --------------- Méthodes -------------
     int limitedRand(int low, int high) // Méthode de random basé sur min et max
     {
         return rand() % (high - low + 1) + low;
     }
-    
-
-    for (int i = 0; i<pool; i++) // Remplissage du tableau
-    {
-        cars[i].s1 = limitedRand(minTime, maxTime);
-    }
-
-    //Les boucles suivantes sont séparées car elles représentent des fonctions différentes du code final.
-
-    for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
-    {
-        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
-    }
-    for (int k = 0; k<pool; k++) // retient le meilleur temps et la voiture associée
-    {
-       if (cars[k].s1< currentBestTime)
-        {
-            currentBestTime = cars[k].s1;
-            currentBestCar = cars[k].num; // Le numéro de la première voiture du tableau est 1 (d'ou k+1)
-        } 
-    }
-    printf("%s%d%s%d%s%d%s\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
-    int compare(const void *p1, const void *p2)
+    int compare(const void *p1, const void *p2) // Méthode de comparation pour car cars[].s1
     {
         const struct car *elem1 = p1;    
         const struct car *elem2 = p2;
@@ -69,8 +47,31 @@ int main()
        else
           return 0;
     }
-    qsort(cars, pool, sizeof(car), compare);
+// -------------- Calculs ---------------
+    for (int i = 0; i<pool; i++) // Remplissage du tableau
+    {
+        cars[i].s1 = limitedRand(minTime, maxTime);
+    }
+    for (int k = 0; k<pool; k++) // retient le meilleur temps et la voiture associée
+    {
+       if (cars[k].s1< currentBestTime)
+        {
+            currentBestTime = cars[k].s1;
+            currentBestCar = cars[k].num; 
+        } 
+    }    
+
+// -------------- Affichage --------------
+
     for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
+    {
+        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
+    }
+    
+    printf("\n%s%d%s%d%s%d%s\n\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
+
+    qsort(cars, pool, sizeof(car), compare); 
+    for (int j = 0; j<pool; j++) // affichage la liste des temps classé.
     {
         printf("%d%s%d%s%d%s%d%s%d%s\n" ,j+1,": voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
     }
