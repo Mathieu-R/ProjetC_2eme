@@ -25,7 +25,6 @@ int main()
     **/
     int minTime = 500; // temps maximum en secondes
     int maxTime = 900; // temps minimum en secondes
-    int cumulatedTime;
     int currentBestCar;
     int currentBestTime = maxTime + 1;
     srand ( time(NULL) );
@@ -65,7 +64,7 @@ int main()
 
     for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
     {
-        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
+        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)");
     }
     
     printf("\n%s%d%s%d%s%d%s\n\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
@@ -73,7 +72,7 @@ int main()
     qsort(cars, pool, sizeof(car), compare); 
     for (int j = 0; j<pool; j++) // affichage la liste des temps classé.
     {
-        printf("%d%s%d%s%d%s%d%s%d%s\n" ,j+1,": voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
+        printf("%d%s%d%s%d%s%d%s%d%s\n" ,j+1,": voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); 
     }
 
     return 0;
