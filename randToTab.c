@@ -3,9 +3,20 @@
 #include <time.h>
 
 int main()
-{        
+{     
+    // Création de la structure (devra etre importée depuis SM)
     int pool = 20; // nombre de voitures
-    int cars[pool]; // tab de temps - !! ce tableau correspond au contenu des structures voitures de la SM !! -
+    struct car 
+    {
+        int num;
+        int s1;
+    };
+    struct car cars[pool]; // tab de structures - !!
+    for (int i = 0; i<pool; i++) // remplissage du tableau avec des numéros de voiture génériques.
+    {
+        cars[i].num=i+1;
+    }
+    // Fin de la création du tableau de structure.
     /**
     *  autre approche: définir un temps moyen et un taux de déviation par rapport à la moyenne.
     *  int average = 700; // moyenne de temps
@@ -29,23 +40,21 @@ int main()
 
     for (int i = 0; i<pool; i++) // Remplissage du tableau
     {
-        cars[i] = limitedRand(minTime, maxTime);
+        cars[i].s1 = limitedRand(minTime, maxTime);
     }
 
     //Les boucles suivantes sont séparées car elles représentent des fonctions différentes du code final.
 
     for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
     {
-        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", j+1,": ", cars[j],"s (",cars[j]/60,"m",cars[j]%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
-        cumulatedTime =+ cars[j];
-        
+        printf("%s%d%s%d%s%d%s%d%s\n" ,"voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
     }
     for (int k = 0; k<pool; k++) // retient le meilleur temps et la voiture associée
     {
-       if (cars[k]< currentBestTime)
+       if (cars[k].s1< currentBestTime)
         {
-            currentBestTime = cars[k];
-            currentBestCar = k+1; // Le numéro de la première voiture du tableau est 1 (d'ou k+1)
+            currentBestTime = cars[k].s1;
+            currentBestCar = cars[k].num; // Le numéro de la première voiture du tableau est 1 (d'ou k+1)
         } 
     }
     printf("%s%d%s%d%s%d%s\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
