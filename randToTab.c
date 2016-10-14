@@ -6,17 +6,16 @@ int main()
 {     
     // Création de la structure (devra etre importée depuis SM)
     int pool = 20; // nombre de voitures
-    struct car 
+    typedef struct car 
     {
         int num;
         int s1;
-    };
+    }car;
     struct car cars[pool]; // tab de structures - !!
-    for (int i = 0; i<pool; i++) // remplissage du tableau avec des numéros de voiture génériques.
+    for (int i = 0; i<pool; i++)
     {
         cars[i].num=i+1;
     }
-    // Fin de la création du tableau de structure.
     /**
     *  autre approche: définir un temps moyen et un taux de déviation par rapport à la moyenne.
     *  int average = 700; // moyenne de temps
@@ -58,6 +57,23 @@ int main()
         } 
     }
     printf("%s%d%s%d%s%d%s\n" ,"La meilleure voiture est la voiture n°", currentBestCar," avec un temps de ", currentBestTime/60,"m",currentBestTime%60,"s"); // affiche la meilleure voiture et son temps
+    int compare(const void *p1, const void *p2)
+    {
+        const struct car *elem1 = p1;    
+        const struct car *elem2 = p2;
     
+       if ( elem1->s1 < elem2->s1)
+          return -1;
+       else if (elem1->s1 > elem2->s1)
+          return 1;
+       else
+          return 0;
+    }
+    qsort(cars, pool, sizeof(car), compare);
+    for (int j = 0; j<pool; j++) // affichage la liste des temps (inutile dans le code final)
+    {
+        printf("%d%s%d%s%d%s%d%s%d%s\n" ,j+1,": voiture n°", cars[j].num,": ", cars[j].s1,"s (",cars[j].s1/60,"m",cars[j].s1%60,"s)"); // Le numéro de la première voiture du tableau est 1 (d'ou j+1)
+    }
+
     return 0;
 }
