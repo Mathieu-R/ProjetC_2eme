@@ -62,6 +62,18 @@ int compare(const void *p1, const void *p2) { // Méthode de comparation pour le
 
 int run(Pilote *p, char* name) {
 
+	/* Instancie toutes les valeurs (exepté le pilote_id) à 0 */
+	p->s1 = 0;
+	p->bestS1 = 0;
+	p->s2 = 0;
+	p->bestS2 = 0;
+	p->s3 = 0;
+	p->bestS3 = 0;
+	p->best = 0;
+	p->isPit = 0;
+	p->hasGivenUp = 0;
+	p->numberOfPits = 0;
+
 	for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
 
         p->isPit = 0; // Au début du tour, il n'est pas aux stands
@@ -75,7 +87,7 @@ int run(Pilote *p, char* name) {
             }
   		}
 
-        else if (p->numberOfPits < 2) { // Max 2 arrêts
+        if (p->numberOfPits < 2) { // Max 2 arrêts
         	p->isPit = genRaceEvents();
 
             if (p->isPit) {
@@ -95,23 +107,42 @@ int run(Pilote *p, char* name) {
             S1 += genTime(20 * 3600, 25 * 3600); // On rajoute entre 20 et 25sec au Secteur 1
         }
 
-        int lap = S1 + S2 + S3;
-
-        if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
-        if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
-        if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
-
         p->s1 = S1; // On notifie le temps du S1
         p->s2 = S2; // On notifie le temps du S2
         p->s3 = S3; // etc...
 
-        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
+        int lap = S1 + S2 + S3;
+
+        if (i == 0) { // Si l'on est au premier tours (en effet, au premier tours les bests temps sont initialisés à zéro !)
+        	p->bestS1 = S1; 
+        	p->bestS2 = S2; 
+        	p->bestS3 = S3; 
+
+        	p->best = lap;
+
+        } else {
+
+	        if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
+	        if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
+	        if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
+
+
+	        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
+        }
 
         // Problème avec p->best ==> Temps négatifs, temps de 0sec,...
 
 	    //} 
 
     } // Fin de la boucle
+}
+
+void showResults(struct Pilote tab[], int nbElems) {
+	qsort(tab, nbElems, sizeof(Pilote), compare); 
+
+    for (int k = 0; k<nbElems; k++) {
+        printf("%d%s%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": ", tab[k].best/3600,"s (", tab[k].best/(60*3600),"m", (tab[k].best/3600)%60,"s", tab[k].best%60,"ms)"); 
+    }
 }
 
 int main(int argc, char const *argv[]) {
@@ -172,11 +203,8 @@ int main(int argc, char const *argv[]) {
                         if (j == MAX_PILOTES - 1) {
                             printf("P%d: \n", i);
 
-                            qsort(pilotesTab, MAX_PILOTES, sizeof(Pilote), compare); 
+                            showResults(pilotesTab, MAX_PILOTES);
 
-                            for (int k = 0; k<MAX_PILOTES; k++) {
-                                printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", pilotesTab[k].pilote_id,": ", pilotesTab[k].best/3600,"s (", pilotesTab[k].best/(60*3600),"m", (pilotesTab[k].best/3600)%60,"s)"); 
-                            }
                         }
                     
                     }
@@ -190,11 +218,7 @@ int main(int argc, char const *argv[]) {
                         if (j == MAX_PILOTES - 1) {
                             printf("Q1\n");
 
-                            qsort(pilotesTab, MAX_PILOTES, sizeof(Pilote), compare); 
-
-                            for (int k = 0; k<MAX_PILOTES; k++) {
-                                printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", pilotesTab[k].pilote_id,": ", pilotesTab[k].best/3600,"s (", pilotesTab[k].best/(60*3600),"m", (pilotesTab[k].best/3600)%60,"s)"); 
-                            }
+                            showResults(pilotesTab, MAX_PILOTES);
 
                             for (int k = 0; k<16; k++) {
                                 Q2[k] = pilotesTab[k];
@@ -212,11 +236,7 @@ int main(int argc, char const *argv[]) {
                         if (j == 15) {
                             printf("Q2\n");
 
-                            qsort(Q2, MAX_PILOTES, sizeof(Pilote), compare); 
-
-                            for (int k = 0; k<MAX_PILOTES; k++) {
-                                printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", Q2[k].pilote_id,": ", Q2[k].best/3600,"s (", Q2[k].best/(60*3600),"m", (Q2[k].best/3600)%60,"s)"); 
-                            }
+              				showResults(Q2, 16);
 
                             for (int k = 0; k<10; k++) {
                                 Q3[k] = Q2[k];
@@ -234,17 +254,15 @@ int main(int argc, char const *argv[]) {
                         if (j == 9) {
                             printf("Q3\n");
 
-                            qsort(Q3, MAX_PILOTES, sizeof(Pilote), compare); 
+                            showResults(Q3, 10);
 
-                            for (int k = 0; k<MAX_PILOTES; k++) {
-                                printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", Q3[k].pilote_id,": ", Q3[k].best/3600,"s (", Q3[k].best/(60*3600),"m", (Q3[k].best/3600)%60,"s)"); 
-                            }
                         }
                     
                     }
                     break;
                 case 7:
-					fillTabBeforeRace();               	
+					 fillTabBeforeRace(); // Crée la grille de départ
+
                      for (int j = 0; j < MAX_PILOTES; j++) {
 
                         run(&pilotesTab[j], "Race");
@@ -253,11 +271,8 @@ int main(int argc, char const *argv[]) {
                         if (j == MAX_PILOTES - 1) {
                             printf("Race: \n");
 
-                            qsort(pilotesTab, MAX_PILOTES, sizeof(Pilote), compare); 
+                            showResults(pilotesTab, MAX_PILOTES);
 
-                            for (int k = 0; k<MAX_PILOTES; k++) {
-                                printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", pilotesTab[k].pilote_id,": ", pilotesTab[k].best/3600,"s (", pilotesTab[k].best/(60*3600),"m", (pilotesTab[k].best/3600)%60,"s)"); 
-                            }
                         }
                     
                     }
