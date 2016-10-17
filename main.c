@@ -64,31 +64,34 @@ int run(Pilote *p, char* name) {
 
 	for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
 
-        int hasPit = 0; // Au début du tour, il n'est pas aux stands
+        p->isPit = 0; // Au début du tour, il n'est pas aux stands
 
   		if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
   			p->hasGivenUp = genRaceEvents();
             
   			if (p->hasGivenUp) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
-                printf("Le pilote %d a abandonné au tour %d\n", p->pilote_id, i+1);
+                //printf("Le pilote %d a abandonné au tour %d\n", p->pilote_id, i+1);
                 return 0;
             }
   		}
 
         else if (p->numberOfPits < 2) { // Max 2 arrêts
         	p->isPit = genRaceEvents();
-            p->numberOfPits++;
-            hasPit = 1;
 
-            if (strcmp(name, "Practices") == 0 || strcmp(name, "Qualifs") == 0) continue;
+            if (p->isPit) {
+            	p->numberOfPits++;
+            	if ((strcmp(name, "Practices") == 0)|| (strcmp(name, "Qualifs") == 0)) continue; // On passe à l'itération suivante
+            }
+            
         }
 
         //else { // Sinon on peut faire un tour du circuit
         int S1 = genTime(30 * 3600, 35 * 3600);
+        //printf("%d\n", S1/3600);
         int S2 = genTime(50 * 3600, 55 * 3600);
         int S3 = genTime(29 * 3600, 34 * 3600);
 
-        if (strcmp(name, "Race") == 0 && hasPit) { // Si l'on est en course et que le pilote est au stand
+        if ((strcmp(name, "Race") == 0) && (p->isPit)) { // Si l'on est en course et que le pilote est au stand
             S1 += genTime(20 * 3600, 25 * 3600); // On rajoute entre 20 et 25sec au Secteur 1
         }
 
@@ -104,6 +107,8 @@ int run(Pilote *p, char* name) {
 
         if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
 
+        // Problème avec p->best ==> Temps négatifs, temps de 0sec,...
+
 	    //} 
 
     } // Fin de la boucle
@@ -117,8 +122,8 @@ int main(int argc, char const *argv[]) {
 
     struct Pilote pilotesTab[MAX_PILOTES]; // Tableau de structures pilote
 
-    struct Pilote Q2[16]; // Tableau des numéro de pilotes lors de la Q2
-    struct Pilote Q3[10]; // Tableau des numéro de pilotes lors de la Q3
+    struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
+    struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
 
     void fillTabBeforeRace() {
         for (int i = 0; i < 10; i++) {
@@ -157,6 +162,8 @@ int main(int argc, char const *argv[]) {
                case 3:
                     for (int j = 0; j < MAX_PILOTES; j++) {
 
+                    	//printf("%d\n", pilotes_numbers[j]);
+
                         pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
 
                         run(&pilotesTab[j], "Practices");
@@ -181,7 +188,7 @@ int main(int argc, char const *argv[]) {
 
                         // Affichage
                         if (j == MAX_PILOTES - 1) {
-                            printf("Q1");
+                            printf("Q1\n");
 
                             qsort(pilotesTab, MAX_PILOTES, sizeof(Pilote), compare); 
 
@@ -202,8 +209,8 @@ int main(int argc, char const *argv[]) {
                         run(&pilotesTab[j], "Qualifs");
 
                         // Affichage
-                        if (j == MAX_PILOTES - 1) {
-                            printf("Q2");
+                        if (j == 15) {
+                            printf("Q2\n");
 
                             qsort(Q2, MAX_PILOTES, sizeof(Pilote), compare); 
 
@@ -224,8 +231,8 @@ int main(int argc, char const *argv[]) {
                         run(&pilotesTab[j], "Qualifs");
 
                         // Affichage
-                        if (j == MAX_PILOTES - 1) {
-                            printf("Q3");
+                        if (j == 9) {
+                            printf("Q3\n");
 
                             qsort(Q3, MAX_PILOTES, sizeof(Pilote), compare); 
 
