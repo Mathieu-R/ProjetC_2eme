@@ -6,11 +6,39 @@
 #include <sys/sem.h>
 #include <time.h>
 
-#include "fonctions.h"
+//#include "fonctions.h"
 
 #define MAX_PILOTES 22
 #define ID_PROJET 'P'
 #define MAX_TOURS 44
+
+/**
+    * Struct Pilote
+    * Les temps sont en millisecondes
+    * 1 struct par séance
+    * S => Secteur
+    * best => Meilleur temps
+    */
+
+typedef struct Pilote {
+    //le numéro du pilote
+    int pilote_id;
+    //Les temps des différents secteurs
+    int s1;
+    int bestS1;
+    int s2;
+    int bestS2;
+    int s3;
+    int bestS3;
+
+    // Meilleur temps pour le circuit complet
+    int best;
+
+    int isPit;
+    int hasGivenUp;
+    int numberOfPits;
+
+} Pilote;
 
 int genTime(const int min, const int max) {
     srand (time(NULL));
@@ -23,30 +51,33 @@ int genRaceEvents() { // Décide des faits de courses
 }
 
 int compare(const void *p1, const void *p2) { // Méthode de comparation pour les temps
-    const struct car *elem1 = p1;
-    const struct car *elem2 = p2;
+    const struct Pilote *elem1 = p1;
+    const struct Pilote *elem2 = p2;
 
-    if (elem1->s1 < elem2->s1) return -1;
-    if (elem1->s1 > elem2->s1) return 1;
+    if (elem1->best < elem2->best) return -1;
+    if (elem1->best > elem2->best) return 1;
     return 0;
 }
 
-int makePractice(struct Pilote pilote) {
+int makePractice(Pilote *p) {
 
 	printf("Essais Libres: \n");
 	printf("===========================\n\n");
 
 	for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
 
-  		if (!pilote.practice.isOut) { // Si le pilote n'a pas abandonné
-  			pilote.practice.isOut = genRaceEvents();
-
-  			if (pilote.practice.isOut) return; // Si le pilote a abandonné, on s'arrête
+  		if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
+  			p->hasGivenUp = genRaceEvents();
+            
+  			if (p->hasGivenUp) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+                printf("Le pilote a abandonné au tour %d", i+1);
+                return 0;
+            }
   		}
 
-        else if (pilote.practice.numberOfPits < 2) { // Max 2 arrêts
-        	pilote.practice.isPit = genRaceEvents();
-        	if (pilote.practice.isPit) continue; // Si le pilote est au stand, on passe au tour suivant
+        else if (p->numberOfPits < 2) { // Max 2 arrêts
+        	p->isPit = genRaceEvents();
+            p->numberOfPits++;
         }
 
         else { // Sinon on peut faire un tour du circuit
@@ -56,25 +87,23 @@ int makePractice(struct Pilote pilote) {
 
         	int lap = S1 + S2 + S3;
 
-        	if (pilote.practice.s1.S1 > S1) pilote.practice.s1.bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
-        	if (pilote.practice.s2.S2 > S2) pilote.practice.s2.bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
-        	if (pilote.practice.s3.S3 > S3) pilote.practice.s3.bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
+        	if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
+        	if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
+        	if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
 
-        	pilote.practice.s1.S1 = S1; // On notifie le temps du S1
-        	pilote.practice.s2.S2 = S2; // On notifie le temps du S2
-        	pilote.practice.s3.S3 = S3; // etc...
+        	p->s1 = S1; // On notifie le temps du S1
+        	p->s2 = S2; // On notifie le temps du S2
+        	p->s3 = S3; // etc...
 
-        	if (pilote.practice.best < lap) pilote.practice.best = lap; // Si c'est son meilleur temps au tour, on le notifie
-
-        	// Affichage
-        }
+        	if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
 
 
-	}
+	    } 
 
+    } // Fin de la boucle
 }
 
-int makeQualifs(struct Pilote Pilote) {
+int makeQualifs(Pilote *p) {
 
 	printf("Qualifs (Q1): \n");
 	printf("===========================\n\n");
@@ -94,7 +123,7 @@ int makeQualifs(struct Pilote Pilote) {
 
 }
 
-int makeRace(struct Pilote Pilote) {
+int makeRace(Pilote *p) {
 
 
 	printf("Course: \n");
@@ -107,83 +136,14 @@ int main(int argc, char const *argv[]) {
     //typedef enum { false, true } bool; // Structure qui simule un boolean
 
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
-    struct Pilote pilotes[MAX_PILOTES];
 
     /**
      * 1 processus par pilote !!
      * Fork
      */
 
-    typedef struct S1 {
-        int S1; // Temps S1
-        int bestS1; // Meilleur S1
-    } s1;
-
-    typedef struct S2 {
-        int S2; // Temps S2
-        int bestS2; // Meilleur S2
-    } s2;
-
-    typedef struct S3 {
-        int S3; // Temps S3
-        int bestS3; // Meilleur S3
-    } s3;
-
-	typedef struct Practice {
-
-        struct S1 s1;
-        struct S2 s2;
-        struct S3 s3;
-
-        int best; // Meilleur temps au tour
-        int isPit; // Si le pilote est aux stands
-        int isOut; // Si le pilote a abandonné
-        int numberOfPits: 0; // Combien de fois le pilote s'est arrêté au stands
-    } practice;
-
-    typedef struct Qualifs {
-
-        struct S1 s1;
-        struct S2 s2;
-        struct S3 s3;
-
-        int best; // Meilleur temps au tour
-        int isPit;
-        int isOut;
-        int numberOfPits: 0; // Combien de fois le pilote s'est arrêté au stands
-    } qualifs;
-
-
-    typedef struct Race {
-
-        struct S1 s1;
-        struct S2 s2;
-        struct S3 s3;
-
-        int best; // Meilleur temps au tour
-        int isPit;
-        int isOut;
-        int numberOfPits: 0; // Combien de fois le pilote s'est arrêté au stands
-    } race;
-
-    /**
-     * Struct Pilote
-     * Les temps sont en millisecondes
-     * 1 struct par séance
-     * S => Secteur
-     * best => Meilleur temps
-     */
-
-    typedef struct Pilote {
-
-        int pilote_id;
-
-        struct Practice practice; // Struct pour les Essais
-        struct Qualifs qualifs; // Struct pour les Qualifs
-        struct Race race; // Struct pour la Course
-
-
-    } pilote;
+    //Tableau de structures pilote.
+     struct Pilote pilotesTab[MAX_PILOTES];
 
     /**
      * Mise en place de la shared memory
@@ -202,21 +162,30 @@ int main(int argc, char const *argv[]) {
 		return 0;
 	}*/
 
-    for (int i=0; i < MAX_PILOTES - 1; i++) {
+    for (int i=0; i < MAX_PILOTES; i++) {
 
-        if (fork() == 0) {
+        //pilotes[i] = Pilote pilote; // Instance de la struct
+        pilotesTab[i].pilote_id = pilotes_numbers[i]; // Initialise le numéro du pilote
 
-            //pilotes[i] = Pilote pilote; // Instance de la struct
-            pilotes[i].pilote_id = pilotes_numbers[i]; // Initialise le numéro du pilote
+        //pilotesTab[i] pilo
+        makePractice(&pilotesTab[i]);
 
-            makePractice(pilotes[i]);
-            makeQualifs(pilotes[i]);
-            makeRace(pilotes[i]);
+        // QSORT
 
+        // Affichage
 
+        qsort(pilotesTab, MAX_PILOTES, sizeof(Pilote), compare); 
+
+        for (int i = 0; i<MAX_PILOTES; i++) {
+            printf("%d%s%d%s%d%s%d%s%d%s\n" ,i+1,": voiture n°", pilotesTab[i].pilote_id,": ", pilotesTab[i].best,"s (", pilotesTab[i].best/60,"m", pilotesTab[i].best%60,"s)"); 
         }
 
+     
     }
+
+    //makeQualifs(&pilotes[i]);
+    //makeRace(&pilotes[i]);
 
 	return 0;
 }
+
