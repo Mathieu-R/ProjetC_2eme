@@ -10,13 +10,13 @@
 //#include "fonctions.h"
 
 #define MAX_PILOTES 22
-#define ID_PROJET 'P'
+#define ID_PROJET 'FM1'
 #define MAX_TOURS 44
 
-/**
+  /**
     * Struct Pilote
     * Les temps sont en millisecondes
-    * 1 struct par séance
+    * 1 struct pour toute les infos d'un pilote
     * S => Secteur
     * best => Meilleur temps
     */
@@ -79,9 +79,22 @@ int run(Pilote *p, char* name) {
         p->isPit = 0; // Au début du tour, il n'est pas aux stands
 
   		if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
+
+  			int temp1 = genRaceEvents();
+  			int temp2 = genRaceEvents();
+  			int temp3 = genRaceEvents();
+
   			p->hasGivenUp = genRaceEvents();
+
+  			if (((temp1) && (temp2) && (temp3)) && strcmp(name, "Race") == 0) {
+  				//printf("%s: Race\n", name);
+  				//printf("We're in Race !!\n");
+  				p->best = 3 * 60 * 3600;
+				p->hasGivenUp = 1;
+  			}
             
-  			if (p->hasGivenUp) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+  			if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+  				p->hasGivenUp = 1;
                 //printf("Le pilote %d a abandonné au tour %d\n", p->pilote_id, i+1);
                 return 0;
             }
@@ -113,7 +126,7 @@ int run(Pilote *p, char* name) {
 
         int lap = S1 + S2 + S3;
 
-        if (i == 0) { // Si l'on est au premier tours (en effet, au premier tours les bests temps sont initialisés à zéro !)
+        if ((p->best == 0) || (p->bestS1 == 0) || (p->bestS2 == 0) || (p->bestS3 == 0)) { // Si l'on est au premier tours (en effet, au premier tours les bests temps sont initialisés à zéro !)
         	p->bestS1 = S1; 
         	p->bestS2 = S2; 
         	p->bestS3 = S3; 
@@ -130,6 +143,10 @@ int run(Pilote *p, char* name) {
 	        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
         }
 
+        //printf("%d\n", lap);
+
+        //if (i == MAX_TOURS - 1) exit(-1);
+
         // Problème avec p->best ==> Temps négatifs, temps de 0sec,...
 
 	    //} 
@@ -138,9 +155,15 @@ int run(Pilote *p, char* name) {
 }
 
 void showResults(struct Pilote tab[], int nbElems) {
+
+	/*for (int i = 0; i < nbElems; i++) {
+		printf("%d\n", tab[i].best);
+	}*/
+
 	qsort(tab, nbElems, sizeof(Pilote), compare); 
 
     for (int k = 0; k<nbElems; k++) {
+    	
         printf("%d%s%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": ", tab[k].best/3600,"s (", tab[k].best/(60*3600),"m", (tab[k].best/3600)%60,"s", tab[k].best%60,"ms)"); 
     }
 }
@@ -152,7 +175,6 @@ int main(int argc, char const *argv[]) {
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
 
     struct Pilote pilotesTab[MAX_PILOTES]; // Tableau de structures pilote
-
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
     struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
 
@@ -201,7 +223,7 @@ int main(int argc, char const *argv[]) {
 
                         // Affichage
                         if (j == MAX_PILOTES - 1) {
-                            printf("P%d: \n", i);
+                            printf("P%d:\n", i);
 
                             showResults(pilotesTab, MAX_PILOTES);
 
