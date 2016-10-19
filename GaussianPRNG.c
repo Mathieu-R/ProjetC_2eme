@@ -22,7 +22,11 @@ int main()
           return r;
     }
 
-
+    /**
+    *
+    * Cette méthode est basée sur la transformation de Box-Muller: https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+    *
+    **/
     float randGaussien(float m, float s)	/* PRNG distribution normale (gaussienne) */
     {				        /* median m, écart-type s */
     	float x1, x2, w, y1;
