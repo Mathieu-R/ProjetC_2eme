@@ -2,6 +2,7 @@
 * !!! -- A LIRE -- !!!
 * Le fichier doit être compilé de cette manière " gcc -o main *.c -lm " (le -lm est important pour faire fonctionner sqrt et log).
 * l'écart type n'est pas une limite dure; Voir https://fr.wikipedia.org/wiki/%C3%89cart_type
+* -> Pour forcer un temps minimum, ils nous suffira d'additioner le temps au résultat de la méthode comme: "5 minutes + randGaussien"
 * Les méthodes à importer dans le code sont: float ranf() et float randGaussien(...).
 * Ne pas oublier d'importer <math.h> .
 **/
