@@ -193,7 +193,7 @@ void showResults(struct Pilote tab[], int nbElems) {
     	if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
     		printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
     	} else {
-    		printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": (", tab[k].best/60000,"m", (tab[k].best/1000)%60,"s", tab[k].best%60,"ms)"); 
+    		printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": (", tab[k].best/60000,"m", (tab[k].best/1000)%60,"s", tab[k].best-(tab[k].best/1000)*1000,"ms)"); 
     	}
     }
 }
