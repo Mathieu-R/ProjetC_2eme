@@ -56,7 +56,7 @@ typedef struct Pilote {
 *
 **/
 float randGaussien(float m, float s) { /* median m, écart-type s */
-	float x1, x2, w, y1;
+	float x1, x2, w, y1, result;
 	static float y2;
 	static int use_last = 0;
 
@@ -78,8 +78,10 @@ float randGaussien(float m, float s) { /* median m, écart-type s */
 		y2 = x2 * w;
 		use_last = 1;
 	}
-
-	return( m + y1 * s );
+	
+	result = ( m + y1 * s );
+	if (result < 0) {return 0.0;}
+	else {return result;}
 }
 
 
