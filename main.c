@@ -1,3 +1,5 @@
+/* /!\ COMPILER AVEC -lm /!\ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,6 +8,7 @@
 #include <sys/sem.h>
 #include <time.h>
 #include <string.h>
+#include <math.h>
 
 //#include "fonctions.h"
 
@@ -37,9 +40,47 @@ typedef struct Pilote {
 
     int isPit;
     int hasGivenUp;
+    int hasGivenUpDuringRace;
     int numberOfPits;
 
 } Pilote;
+
+ float ranf() { // PRNG pour des floats [0, 1].
+      float r = rand() / (float) RAND_MAX;
+      return r;
+}
+
+/**
+*
+* Cette méthode est basée sur la transformation de Box-Muller: https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+*
+**/
+float randGaussien(float m, float s) { /* median m, écart-type s */
+	float x1, x2, w, y1;
+	static float y2;
+	static int use_last = 0;
+
+	if (use_last) /* utilise la valeur de l'appel précédent */
+	{
+		y1 = y2;
+		use_last = 0;
+	}
+	else
+	{
+		do {
+			x1 = 2.0 * ranf() - 1.0;
+			x2 = 2.0 * ranf() - 1.0;
+			w = x1 * x1 + x2 * x2;
+		} while ( w >= 1.0 );
+
+		w = sqrt( (-2.0 * log( w ) ) / w );
+		y1 = x1 * w;
+		y2 = x2 * w;
+		use_last = 1;
+	}
+
+	return( m + y1 * s );
+}
 
 
 int genTime(const int min, const int max) {
@@ -47,7 +88,6 @@ int genTime(const int min, const int max) {
 }
 
 int genRaceEvents() { // Décide des faits de courses
-	//srand(time(NULL));
 	return rand() % 2; // On génère le nombre, soit 0, soit 1;
 }
 
@@ -72,6 +112,7 @@ int run(Pilote *p, char* name) {
 	p->best =  3 * 60 * 3600 + 1;
 	p->isPit = 0;
 	p->hasGivenUp = 0;
+	p->hasGivenUpDuringRace = 0;
 	p->numberOfPits = 0;
 
 	for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
@@ -91,9 +132,11 @@ int run(Pilote *p, char* name) {
   				//printf("We're in Race !!\n");
   				p->best = 3 * 60 * 3600;
 				p->hasGivenUp = 1;
+				p->hasGivenUpDuringRace = 1;
   			}
             
   			if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+  				p->best = 3 * 60 * 3600 + 3;
   				p->hasGivenUp = 1;
                 //printf("Le pilote %d a abandonné au tour %d\n", p->pilote_id, i+1);
                 return 0;
@@ -110,11 +153,10 @@ int run(Pilote *p, char* name) {
             
         }
 
-        //else { // Sinon on peut faire un tour du circuit
-        int S1 = genTime(30 * 3600, 35 * 3600);
-        //printf("%d\n", S1/3600);
-        int S2 = genTime(50 * 3600, 55 * 3600);
-        int S3 = genTime(29 * 3600, 34 * 3600);
+        // On peut faire un tour du circuit
+        int S1 = 0.275 * (103000 + randGaussien(5000, 2000)); // Portion de circuit * Courbe de Gausse (temps min + fun(médian, écart-type))
+        int S2 = 0.459 * (103000 + randGaussien(5000, 2000)); 
+        int S3 = 0.266 * (103000 + randGaussien(5000, 2000)); 
 
         if ((strcmp(name, "Race") == 0) && (p->isPit)) { // Si l'on est en course et que le pilote est au stand
             S1 += genTime(20 * 3600, 25 * 3600); // On rajoute entre 20 et 25sec au Secteur 1
@@ -124,8 +166,9 @@ int run(Pilote *p, char* name) {
         p->s2 = S2; // On notifie le temps du S2
         p->s3 = S3; // etc...
 
+        //printf("%d\t%d\t%d\n", S1, S2, S3);
+
         int lap = S1 + S2 + S3;
-        
 
         if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
         if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
@@ -133,31 +176,25 @@ int run(Pilote *p, char* name) {
 
 
         if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
-        
 
         //printf("%d\n", p->best);
-
-        //if (i == MAX_TOURS - 1) exit(-1);
-
-        // Problème avec p->best ==> Temps négatifs, temps de 0sec,...
-
-	    //} 
 
     } // Fin de la boucle
 }
 
 void showResults(struct Pilote tab[], int nbElems) {
 
-	/*for (int i = 0; i < nbElems; i++) {
-		printf("%d\n", tab[i].best);
-	}*/
-	//delay(10000);
-
 	qsort(tab, nbElems, sizeof(Pilote), compare); 
 
     for (int k = 0; k<nbElems; k++) {
-    	
-        printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": (", tab[k].best/(60*3600),"m", (tab[k].best/3600)%60,"s", tab[k].best%60,"ms)"); 
+
+    	//sleep(1);
+
+    	if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
+    		printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
+    	} else {
+    		printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": (", tab[k].best/60000,"m", (tab[k].best/1000)%60,"s", tab[k].best%60,"ms)"); 
+    	}
     }
 }
 
