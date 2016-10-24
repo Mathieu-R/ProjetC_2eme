@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/types.h>
 #include <sys/sem.h>
 #include <time.h>
 #include <string.h>
@@ -13,7 +14,6 @@
 //#include "fonctions.h"
 
 #define MAX_PILOTES 22
-#define ID_PROJET 'FM1'
 #define MAX_TOURS 44
 
   /**
@@ -206,37 +206,38 @@ int main(int argc, char const *argv[]) {
 
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
 
-    struct Pilote pilotesTab[MAX_PILOTES]; // Tableau de structures pilote
+    //struct Pilote pilotesTab[MAX_PILOTES]; // Tableau de structures pilote
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
     struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
-
-    void fillTabBeforeRace() {
-        for (int i = 0; i < 10; i++) {
-            pilotesTab[i] = Q3[i];
-        }
-
-        for (int i = 10; i < 16; i++) {
-            pilotesTab[i] = Q2[i];
-        }
-    }
 
     /**
      * Mise en place de la shared memory
      */
 
-	/*key_t key; // Clé
-    key = ftok(argv[0], ID_PROJET); // argv[O] => nom du programme lancé, ID (char)
-	int perm = 0644; // Permissions
+	key_t key; // Clé
 
-	int shmid = 0; // ID de la shared memory
+    key = ftok(argv[0], 123); // argv[O] => nom du programme lancé, ID (char)
 
-	shmid = shmget(key, sizeof(Pilote), 0666);
+	int	shmid = shmget(key, sizeof(Pilote), IPC_CREAT | 0644);
 
 	if (shmid == -1) {
 		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
 		return 0;
-	}*/
+	}
 
+	struct Pilote *pilotesTab;
+
+	pilotesTab= shmat(shmid, NULL, 0);
+
+   void fillTabBeforeRace() {
+	    for (int i = 0; i < 10; i++) {
+	        pilotesTab[i] = Q3[i];
+	    }
+
+	    for (int i = 10; i < 16; i++) {
+	        pilotesTab[i] = Q2[i];
+	    }
+    }
  
 
     for (int i = 1; i <= 7; i++) {
