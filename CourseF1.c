@@ -6,12 +6,13 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/sem.h>
 #include <time.h>
 #include <string.h>
 #include <math.h>
-
-//#include "fonctions.h"
+#include "ResultCourse.c"
 
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
@@ -27,6 +28,7 @@
 typedef struct Pilote {
     //le numéro du pilote
     int pilote_id;
+
     //Les temps des différents secteurs
     int s1;
     int bestS1;
@@ -80,8 +82,10 @@ float randGaussien(float m, float s) { /* median m, écart-type s */
 	}
 	
 	result = ( m + y1 * s );
-	if (result < 0) {return 0.0;}
-	else {return result;}
+	if (result < 0) {
+		return 0.0;
+	}
+	return result;
 }
 
 
@@ -184,29 +188,12 @@ int run(Pilote *p, char* name) {
     } // Fin de la boucle
 }
 
-void showResults(struct Pilote tab[], int nbElems) {
-
-	qsort(tab, nbElems, sizeof(Pilote), compare); 
-
-    for (int k = 0; k<nbElems; k++) {
-
-    	//sleep(1);
-
-    	if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
-    		printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
-    	} else {
-    		printf("%d%s%d%s%d%s%d%s%d%s\n" ,k+1,": voiture n°", tab[k].pilote_id,": (", tab[k].best/60000,"m", (tab[k].best/1000)%60,"s", tab[k].best-(tab[k].best/1000)*1000,"ms)"); 
-    	}
-    }
-}
-
 int main(int argc, char const *argv[]) {
 
     srand (time(NULL));
 
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
 
-    //struct Pilote pilotesTab[MAX_PILOTES]; // Tableau de structures pilote
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
     struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
 
@@ -215,19 +202,26 @@ int main(int argc, char const *argv[]) {
      */
 
 	key_t key; // Clé
+	char *path = "tmp_fifo";
+	int shmid[1];
+
+	mkfifo(path, 0666);
+	int fd = open(path, O_WRONLY); 
 
     key = ftok(argv[0], 123); // argv[O] => nom du programme lancé, ID (char)
 
-	int	shmid = shmget(key, sizeof(Pilote), IPC_CREAT | 0644);
+	shmid[0] = shmget(key, sizeof(Pilote), IPC_CREAT | 0644);
 
-	if (shmid == -1) {
+	if (shmid[0] == -1) {
 		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
 		return 0;
 	}
 
+	write(fd,shmid, sizeof(shmid));
+
 	struct Pilote *pilotesTab;
 
-	pilotesTab = shmat(shmid, NULL, 0);
+	pilotesTab = shmat(shmid[0], NULL, 0);
 
    void fillTabBeforeRace() {
 	    for (int i = 0; i < 10; i++) {
