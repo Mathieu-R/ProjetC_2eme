@@ -227,7 +227,7 @@ int main(int argc, char const *argv[]) {
 
 	struct Pilote *pilotesTab;
 
-	pilotesTab= shmat(shmid, NULL, 0);
+	pilotesTab = shmat(shmid, NULL, 0);
 
    void fillTabBeforeRace() {
 	    for (int i = 0; i < 10; i++) {
@@ -316,6 +316,7 @@ int main(int argc, char const *argv[]) {
 
     }
 
+    shmdt(pilotesTab);
 	return 0;
 }
 
