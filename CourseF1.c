@@ -47,9 +47,9 @@ typedef struct Pilote {
 
 } Pilote;
 
- float ranf() { // PRNG pour des floats [0, 1].
-      float r = rand() / (float) RAND_MAX;
-      return r;
+float ranf() { // PRNG pour des floats [0, 1].
+	float r = rand() / (float) RAND_MAX;
+	return r;
 }
 
 /**
@@ -104,6 +104,12 @@ int compare(const void *p1, const void *p2) { // Méthode de comparation pour le
     if (elem1->best < elem2->best) return -1;
     if (elem1->best > elem2->best) return 1;
     return 0;
+}
+
+void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int start, const int stop) {
+    for (int i = start; i < stop; i++) {
+        tabToFill[i] = tabFiller[i];
+    }
 }
 
 int run(Pilote *p, char* name) {
@@ -197,49 +203,37 @@ int main(int argc, char const *argv[]) {
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
     struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
 
+    struct Pilote mainRun[MAX_PILOTES]; // Tableau des pilotes pour les autres séances
+
     /**
      * Mise en place de la shared memory
      */
 
 	key_t key; // Clé
 	char *path = "tmp_fifo";
-	int shmid[1];
+	int shmid;
 
-	mkfifo(path, 0666);
 	int fd = open(path, O_WRONLY); 
 
     key = ftok(argv[0], 123); // argv[O] => nom du programme lancé, ID (char)
 
-	shmid[0] = shmget(key, sizeof(Pilote), IPC_CREAT | 0644);
+	shmid = shmget(key, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644);
 
-	if (shmid[0] == -1) {
+	if (shmid == -1) {
 		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
 		return 0;
 	}
 
-	write(fd,shmid, sizeof(shmid));
-
 	struct Pilote *pilotesTab;
 
-	pilotesTab = shmat(shmid[0], NULL, 0);
-
-   void fillTabBeforeRace() {
-	    for (int i = 0; i < 10; i++) {
-	        pilotesTab[i] = Q3[i];
-	    }
-
-	    for (int i = 10; i < 16; i++) {
-	        pilotesTab[i] = Q2[i];
-	    }
-    }
- 
+	pilotesTab = shmat(shmid, NULL, 0);
 
     for (int i = 1; i <= 7; i++) {
 
            switch(i) {
-               case 1:
-               case 2:
-               case 3:
+               case 1: // P1
+               case 2: // P2
+               case 3: // P3
                     for (int j = 0; j < MAX_PILOTES; j++) {
 
                     	//printf("%d\n", pilotes_numbers[j]);
@@ -250,10 +244,11 @@ int main(int argc, char const *argv[]) {
                     }
 
                     printf("P%d:\n", i);
-                    showResults(pilotesTab, MAX_PILOTES);
+                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
+                    showResults(mainRun, MAX_PILOTES);
 
                     break;
-                case 4:
+                case 4: // Q1
 	                for (int j = 0; j < MAX_PILOTES; j++) {
 
                         run(&pilotesTab[j], "Qualifs");
@@ -261,13 +256,13 @@ int main(int argc, char const *argv[]) {
                     }
 
                     printf("Q1\n");
-                    showResults(pilotesTab, MAX_PILOTES);
+                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                    showResults(mainRun, MAX_PILOTES);
 
-                    for (int k = 0; k<16; k++) {
-                        Q2[k] = pilotesTab[k];
-                    }
+                    
+                    fillTab(Q2, Q1, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
                     break;
-                case 5:
+                case 5: //Q2
                 	for (int j = 0; j < 16; j++) {
 
                         run(&pilotesTab[j], "Qualifs");
@@ -277,11 +272,9 @@ int main(int argc, char const *argv[]) {
                     printf("Q2\n");
       				showResults(Q2, 16);
 
-                    for (int k = 0; k<10; k++) {
-                        Q3[k] = Q2[k];
-                    }
+                    fillTab(Q3, Q2, 0, 10); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
                     break;
-                case 6:
+                case 6: // Q3
                      for (int j = 0; j < 10; j++) {
 
                         run(&pilotesTab[j], "Qualifs");
@@ -291,8 +284,10 @@ int main(int argc, char const *argv[]) {
                     printf("Q3\n");
                     showResults(Q3, 10);
                     break;
-                case 7:
-					 fillTabBeforeRace(); // Crée la grille de départ
+                case 7: // Race
+					// Crée la grille de départ
+                	fillTab(mainRun, Q3, 0, 10); // Remplis les 10 premiers de la Q3
+                	fillTab(mainRun, Q2, 10, 16); // Remplis les 6 suivants de la Q2
 
                      for (int j = 0; j < MAX_PILOTES; j++) {
 
@@ -301,7 +296,8 @@ int main(int argc, char const *argv[]) {
                     }
 
                     printf("Race: \n");
-                    showResults(pilotesTab, MAX_PILOTES);
+                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                    showResults(mainRun, MAX_PILOTES);
                     break;
                     
            } 
@@ -311,6 +307,7 @@ int main(int argc, char const *argv[]) {
     }
 
     shmdt(pilotesTab);
+    shmctl (shmid, IPC_RMID, 0);
 	return 0;
 }
 

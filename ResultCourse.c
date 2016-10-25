@@ -42,24 +42,21 @@ typedef struct Pilote {
 
 } Pilote;
 
-void showResults(int nbElems) {
+int compare(const void *p1, const void *p2) { // Méthode de comparation pour les temps
+    const struct Pilote *elem1 = p1;
+    const struct Pilote *elem2 = p2;
 
-	int buf;
-	printf("%d",buf);
+    if (elem1->best < elem2->best) return -1;
+    if (elem1->best > elem2->best) return 1;
+    return 0;
+}
 
-	int fd = open("tmp_id", 0666);
+void showResults(struct Pilote tab[], int nbElems) {
 
-	read(fd, buf, sizeof(int));
-
-	struct Pilote *tab;
-
-	tab = shmat(buf, NULL, 0);
-
-	close(fd);
-
+	
 	qsort(tab, nbElems, sizeof(Pilote), compare); 
 
-    for (int k = 0; k<nbElems; k++) {
+    for (int k = 0; k < nbElems; k++) {
 
     	if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
     		printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
@@ -78,6 +75,6 @@ void showResults(int nbElems) {
 
 int main(int argc, char const *argv[])
 {
-	showResults(22);
+	showResults(struct Pilote tab[], int nbElems);
 	return 0;
 }
