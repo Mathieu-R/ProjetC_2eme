@@ -1,24 +1,29 @@
-typedef struct Pilote {
-    //le numéro du pilote
-    int pilote_id;
+#ifndef _RESULTCOURSEH_
+#define _RESULTCOURSEH_
 
-    //Les temps des différents secteurs
-    int s1;
-    int bestS1;
-    int s2;
-    int bestS2;
-    int s3;
-    int bestS3;
+// typedef struct Pilote {
+//     //le numéro du pilote
+//     int pilote_id;
 
-    // Meilleur temps pour le circuit complet
-    int best;
+//     //Les temps des différents secteurs
+//     int s1;
+//     int bestS1;
+//     int s2;
+//     int bestS2;
+//     int s3;
+//     int bestS3;
 
-    int isPit;
-    int hasGivenUp;
-    int hasGivenUpDuringRace;
-    int numberOfPits;
+//     // Meilleur temps pour le circuit complet
+//     int best;
 
-} Pilote;
+//     int isPit;
+//     int hasGivenUp;
+//     int hasGivenUpDuringRace;
+//     int numberOfPits;
 
-int compare(const void *p1, const void *p2);
+// } Pilote;
+
+// int compare(const void *p1, const void *p2);
 void showResults(struct Pilote tab[], int nbElems);
+
+#endif

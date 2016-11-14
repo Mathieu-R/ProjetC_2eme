@@ -1,3 +1,13 @@
+#ifndef _COURSEF1H_
+#define _COURSEF1H_
+
+/**
+* Struct Pilote
+* Les temps sont en millisecondes
+* 1 struct pour toute les infos d'un pilote
+* S => Secteur
+* best => Meilleur temps
+*/
 
 typedef struct Pilote {
     //le numéro du pilote
@@ -15,6 +25,7 @@ typedef struct Pilote {
 
     int isPit;
     int hasGivenUp;
+    int hasGivenUpDuringRace;
     int numberOfPits;
 
 } Pilote;
@@ -26,3 +37,5 @@ int genRaceEvents();
 int compare(const void *p1, const void *p2);
 int run (Pilote *p, char* name);
 void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int start, const int stop);
+
+#endif

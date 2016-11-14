@@ -12,7 +12,9 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include "ResultCourse.c"
+//#include "ResultCourse.c"
+#include "CourseF1.h"
+#include "ResultCourse.h"
 
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
@@ -25,27 +27,27 @@
     * best => Meilleur temps
     */
 
-typedef struct Pilote {
-    //le numéro du pilote
-    int pilote_id;
+// typedef struct Pilote {
+//     //le numéro du pilote
+//     int pilote_id;
 
-    //Les temps des différents secteurs
-    int s1;
-    int bestS1;
-    int s2;
-    int bestS2;
-    int s3;
-    int bestS3;
+//     //Les temps des différents secteurs
+//     int s1;
+//     int bestS1;
+//     int s2;
+//     int bestS2;
+//     int s3;
+//     int bestS3;
 
-    // Meilleur temps pour le circuit complet
-    int best;
+//     // Meilleur temps pour le circuit complet
+//     int best;
 
-    int isPit;
-    int hasGivenUp;
-    int hasGivenUpDuringRace;
-    int numberOfPits;
+//     int isPit;
+//     int hasGivenUp;
+//     int hasGivenUpDuringRace;
+//     int numberOfPits;
 
-} Pilote;
+// } Pilote;
 
 float ranf() { // PRNG pour des floats [0, 1].
 	float r = rand() / (float) RAND_MAX;
@@ -229,11 +231,7 @@ int main(int argc, char const *argv[]) {
                case 2: // P2
                case 3: // P3
                     for (int j = 0; j < MAX_PILOTES; j++) {
-
-                    	//printf("%d\n", pilotes_numbers[j]);
-
                         pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-
                         run(&pilotesTab[j], "Practices");
                     }
 
@@ -244,9 +242,7 @@ int main(int argc, char const *argv[]) {
                     break;
                 case 4: // Q1
 	                for (int j = 0; j < MAX_PILOTES; j++) {
-
                         run(&pilotesTab[j], "Qualifs");
-                    
                     }
 
                     printf("Q1\n");
@@ -254,13 +250,11 @@ int main(int argc, char const *argv[]) {
                     showResults(mainRun, MAX_PILOTES);
 
                     
-                    fillTab(Q2, Q1, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
+                    fillTab(Q2, mainRun, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
                     break;
-                case 5: //Q2
+                case 5: // Q2
                 	for (int j = 0; j < 16; j++) {
-
                         run(&pilotesTab[j], "Qualifs");
-                    
                     }
 
                     printf("Q2\n");
@@ -270,9 +264,7 @@ int main(int argc, char const *argv[]) {
                     break;
                 case 6: // Q3
                      for (int j = 0; j < 10; j++) {
-
                         run(&pilotesTab[j], "Qualifs");
-                    
                     }
 
                     printf("Q3\n");
@@ -284,9 +276,7 @@ int main(int argc, char const *argv[]) {
                 	fillTab(mainRun, Q2, 10, 16); // Remplis les 6 suivants de la Q2
 
                      for (int j = 0; j < MAX_PILOTES; j++) {
-
                         run(&pilotesTab[j], "Race");
-
                     }
 
                     printf("Race: \n");
