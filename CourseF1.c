@@ -140,8 +140,6 @@ int run(Pilote *p, char* name) {
   			p->hasGivenUp = genRaceEvents();
 
   			if (((temp1) && (temp2) && (temp3)) && strcmp(name, "Race") == 0) {
-  				//printf("%s: Race\n", name);
-  				//printf("We're in Race !!\n");
   				p->best = 3 * 60 * 3600;
 				p->hasGivenUp = 1;
 				p->hasGivenUpDuringRace = 1;
@@ -150,7 +148,6 @@ int run(Pilote *p, char* name) {
   			if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
   				p->best = 3 * 60 * 3600 + 3;
   				p->hasGivenUp = 1;
-                //printf("Le pilote %d a abandonné au tour %d\n", p->pilote_id, i+1);
                 return 0;
             }
   		}
@@ -178,8 +175,6 @@ int run(Pilote *p, char* name) {
         p->s2 = S2; // On notifie le temps du S2
         p->s3 = S3; // etc...
 
-        //printf("%d\t%d\t%d\n", S1, S2, S3);
-
         int lap = S1 + S2 + S3;
 
         if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
@@ -188,8 +183,6 @@ int run(Pilote *p, char* name) {
 
 
         if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
-
-        //printf("%d\n", p->best);
 
     } // Fin de la boucle
 }
@@ -228,6 +221,7 @@ int main(int argc, char const *argv[]) {
 
 	pilotesTab = shmat(shmid, NULL, 0);
 
+    // Les 7 événements de la course
     for (int i = 1; i <= 7; i++) {
 
            switch(i) {
@@ -301,13 +295,10 @@ int main(int argc, char const *argv[]) {
                     break;
                     
            } 
-
-          
-
     }
 
-    shmdt(pilotesTab);
-    shmctl (shmid, IPC_RMID, 0);
+    shmdt(pilotesTab); // Détache la mémoire partagée
+    shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 	return 0;
 }
 
