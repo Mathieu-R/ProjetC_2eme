@@ -1,4 +1,4 @@
-#ifndef _COURSEF1H_
+#ifndef _COURSEF1H_ 
 #define _COURSEF1H_
 
 /**
@@ -8,6 +8,8 @@
 * S => Secteur
 * best => Meilleur temps
 */
+
+/* Les structures be doivent être déclarées qu'une seule fois ! */
 
 typedef struct Pilote {
     //le numéro du pilote

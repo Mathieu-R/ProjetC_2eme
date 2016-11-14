@@ -15,15 +15,6 @@
 
 #define MAX_PILOTES 22
 
-// int compare(const void *p1, const void *p2) { // Méthode de comparation pour les temps
-//     const struct Pilote *elem1 = p1;
-//     const struct Pilote *elem2 = p2;
-
-//     if (elem1->best < elem2->best) return -1;
-//     if (elem1->best > elem2->best) return 1;
-//     return 0;
-// }
-
 void showResults(struct Pilote tab[], int nbElems) {
 
 	qsort(tab, nbElems, sizeof(Pilote), compare); 

@@ -12,42 +12,12 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-//#include "ResultCourse.c"
+
 #include "CourseF1.h"
 #include "ResultCourse.h"
 
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
-
-  /**
-    * Struct Pilote
-    * Les temps sont en millisecondes
-    * 1 struct pour toute les infos d'un pilote
-    * S => Secteur
-    * best => Meilleur temps
-    */
-
-// typedef struct Pilote {
-//     //le numéro du pilote
-//     int pilote_id;
-
-//     //Les temps des différents secteurs
-//     int s1;
-//     int bestS1;
-//     int s2;
-//     int bestS2;
-//     int s3;
-//     int bestS3;
-
-//     // Meilleur temps pour le circuit complet
-//     int best;
-
-//     int isPit;
-//     int hasGivenUp;
-//     int hasGivenUpDuringRace;
-//     int numberOfPits;
-
-// } Pilote;
 
 float ranf() { // PRNG pour des floats [0, 1].
 	float r = rand() / (float) RAND_MAX;
