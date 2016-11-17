@@ -12,6 +12,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <semaphore.h>
 
 #include "CourseF1.h"
 #include "ResultCourse.h"
@@ -161,39 +162,54 @@ int run(Pilote *p, char* name) {
 
 int main(int argc, char const *argv[]) {
 
-    srand (time(NULL));
+    srand (time(NULL)); // Utile pour la génération de nombre aléatoire
 
+    // Variables pour la course
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
-
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
     struct Pilote Q3[10]; // Tableau des pilotes lors de la Q3
-
     struct Pilote mainRun[MAX_PILOTES]; // Tableau des pilotes pour les autres séances
+
+    // Variables de la shared memory
+	key_t key; // Clé
+	int shmid; // SH MEM id
+    struct Pilote *pilotesTab; // Pointeur vers le tableau de pilotes
+
+    // Variable du sémaphore
+    sem_t semaph; // Sémaphore
 
     /**
      * Mise en place de la shared memory
      */
-
-	key_t key; // Clé
-	char *path = "tmp_fifo";
-	int shmid;
-
-	int fd = open(path, O_WRONLY); 
-
+    
+    // Génération de la clé pour la shared memory
     key = ftok(argv[0], 123); // argv[O] => nom du programme lancé, ID (char)
 
-	shmid = shmget(key, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644);
+    // Initialisation de la shared memory
+	shmid = shmget(key, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644); 
 
 	if (shmid == -1) {
-		printf("ERREUR: BAD SHARED MEMORY ALLOCATION.");
+		printf("Erreur lors de l'allocation de la shared memory.");
 		return 0;
 	}
 
-	struct Pilote *pilotesTab;
-
+    // Attache la shared memory
 	pilotesTab = shmat(shmid, NULL, 0);
 
-    // Les 7 événements de la course
+    /**
+     * Mise en place des sémaphores
+     */
+
+    // initialisation du sémaphore
+    if (sem_init(&semaph, 0, 1)) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
+        printf("Erreur: erreur lors de l'initialisation du sémaphore'");
+        return 0;
+    }
+
+    /* 
+     * Les 7 événements de la course
+     */
+
     for (int i = 1; i <= 7; i++) {
 
            switch(i) {
@@ -207,6 +223,7 @@ int main(int argc, char const *argv[]) {
 
                     printf("P%d:\n", i);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
+                    sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
                     showResults(mainRun, MAX_PILOTES);
 
                     break;
@@ -217,6 +234,7 @@ int main(int argc, char const *argv[]) {
 
                     printf("Q1\n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                    sem_post(&semaph);
                     showResults(mainRun, MAX_PILOTES);
 
                     
@@ -228,6 +246,7 @@ int main(int argc, char const *argv[]) {
                     }
 
                     printf("Q2\n");
+                    sem_post(&semaph);
       				showResults(Q2, 16);
 
                     fillTab(Q3, Q2, 0, 10); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
@@ -251,12 +270,13 @@ int main(int argc, char const *argv[]) {
 
                     printf("Race: \n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                    sem_post(&semaph);
                     showResults(mainRun, MAX_PILOTES);
                     break;
                     
            } 
     }
-
+    sem_destroy(&semaph); // Détruit le sémaphore
     shmdt(pilotesTab); // Détache la mémoire partagée
     shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 	return 0;

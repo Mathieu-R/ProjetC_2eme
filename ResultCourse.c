@@ -9,6 +9,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <semaphore.h>
 
 #include "CourseF1.h"
 #include "ResultCourse.h"
@@ -16,6 +17,10 @@
 #define MAX_PILOTES 22
 
 void showResults(struct Pilote tab[], int nbElems) {
+
+    sem_t semaph;
+
+    sem_wait(&semaph); // Attend que la fonction soit terminée avant que l'opération critique puisse commencée.'
 
 	qsort(tab, nbElems, sizeof(Pilote), compare); 
 
