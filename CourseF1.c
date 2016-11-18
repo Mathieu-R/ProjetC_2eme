@@ -1,4 +1,4 @@
-/* /!\ COMPILER AVEC -lm /!\ */
+/* /!\ COMPILER AVEC -lm && -lpthread /!\ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,50 +87,50 @@ void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int sta
 
 int run(Pilote *p, char* name) {
 
-	/* Instancie toutes les valeurs (exepté le pilote_id) à 0 */
-	p->s1 = 3 * 60 * 3600 + 1;
-	p->bestS1 =  3 * 60 * 3600 + 1;
-	p->s2 =  3 * 60 * 3600 + 1;
-	p->bestS2 =  3 * 60 * 3600 + 1;
-	p->s3 =  3 * 60 * 3600 + 1;
-	p->bestS3 =  3 * 60 * 3600 + 1;
-	p->best =  3 * 60 * 3600 + 1;
-	p->isPit = 0;
-	p->hasGivenUp = 0;
-	p->hasGivenUpDuringRace = 0;
-	p->numberOfPits = 0;
+    /* Instancie toutes les valeurs (exepté le pilote_id) à 0 */
+    p->s1 = 3 * 60 * 3600 + 1;
+    p->bestS1 =  3 * 60 * 3600 + 1;
+    p->s2 =  3 * 60 * 3600 + 1;
+    p->bestS2 =  3 * 60 * 3600 + 1;
+    p->s3 =  3 * 60 * 3600 + 1;
+    p->bestS3 =  3 * 60 * 3600 + 1;
+    p->best =  3 * 60 * 3600 + 1;
+    p->isPit = 0;
+    p->hasGivenUp = 0;
+    p->hasGivenUpDuringRace = 0;
+    p->numberOfPits = 0;
 
-	for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
+    for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
 
         p->isPit = 0; // Au début du tour, il n'est pas aux stands
 
-  		if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
+        if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
 
-  			int temp1 = genRaceEvents();
-  			int temp2 = genRaceEvents();
-  			int temp3 = genRaceEvents();
+            int temp1 = genRaceEvents();
+            int temp2 = genRaceEvents();
+            int temp3 = genRaceEvents();
 
-  			p->hasGivenUp = genRaceEvents();
+            p->hasGivenUp = genRaceEvents();
 
-  			if (((temp1) && (temp2) && (temp3)) && strcmp(name, "Race") == 0) {
-  				p->best = 3 * 60 * 3600;
-				p->hasGivenUp = 1;
-				p->hasGivenUpDuringRace = 1;
-  			}
+            if (((temp1) && (temp2) && (temp3)) && strcmp(name, "Race") == 0) {
+                p->best = 3 * 60 * 3600;
+                p->hasGivenUp = 1;
+                p->hasGivenUpDuringRace = 1;
+            }
             
-  			if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
-  				p->best = 3 * 60 * 3600 + 3;
-  				p->hasGivenUp = 1;
+            if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+                p->best = 3 * 60 * 3600 + 3;
+                p->hasGivenUp = 1;
                 return 0;
             }
-  		}
+        }
 
         if (p->numberOfPits < 2) { // Max 2 arrêts
-        	p->isPit = genRaceEvents();
+            p->isPit = genRaceEvents();
 
             if (p->isPit) {
-            	p->numberOfPits++;
-            	if ((strcmp(name, "Practices") == 0)|| (strcmp(name, "Qualifs") == 0)) continue; // On passe à l'itération suivante
+                p->numberOfPits++;
+                if ((strcmp(name, "Practices") == 0)|| (strcmp(name, "Qualifs") == 0)) continue; // On passe à l'itération suivante
             }
             
         }
@@ -158,6 +158,7 @@ int run(Pilote *p, char* name) {
         if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
 
     } // Fin de la boucle
+	
 }
 
 int main(int argc, char const *argv[]) {
@@ -174,9 +175,13 @@ int main(int argc, char const *argv[]) {
 	key_t key; // Clé
 	int shmid; // SH MEM id
     struct Pilote *pilotesTab; // Pointeur vers le tableau de pilotes
+    //struct Pilote *piloteShm = &Pilote; // Pointeur vers une structure de type pilote
 
     // Variable du sémaphore
     sem_t semaph; // Sémaphore
+
+    // Variable du fork
+    pid_t pid;
 
     /**
      * Mise en place de la shared memory
@@ -201,9 +206,28 @@ int main(int argc, char const *argv[]) {
      */
 
     // initialisation du sémaphore
-    if (sem_init(&semaph, 0, 1)) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
+    if (sem_init(&semaph, 1, 1)) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
         printf("Erreur: erreur lors de l'initialisation du sémaphore'");
         return 0;
+    }
+
+    /**
+     * création des 22 processus à l'aide du fork 
+     */
+    
+    for (int k = 0; k < MAX_PILOTES; k++) {
+        pid = fork(); // On fork
+
+        if (pid == -1) {
+            printf("Erreur lors du fork()\n");
+            return 0;
+        }
+        if (pid == 0) { // fils
+            printf("%d: PID => %d\n", k+1, getpid());
+            break; // Break sinon les processus fils vont aussi se forker
+        } else { // père
+            /* rien */
+        }
     }
 
     /* 

@@ -9,7 +9,7 @@
 * best => Meilleur temps
 */
 
-/* Les structures be doivent être déclarées qu'une seule fois ! */
+/* Les structures ne doivent être déclarées qu'une seule fois ! */
 
 typedef struct Pilote {
     //le numéro du pilote
@@ -37,6 +37,7 @@ float randGaussien(float m, float s);
 int genTime(const int min, const int max);
 int genRaceEvents();
 int compare(const void *p1, const void *p2);
+int forking(Pilote *p, char* name); 
 int run (Pilote *p, char* name);
 void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int start, const int stop);
 
