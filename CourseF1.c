@@ -175,6 +175,7 @@ int main(int argc, char const *argv[]) {
 	key_t key; // Clé
 	int shmid; // SH MEM id
     struct Pilote *pilotesTab; // Pointeur vers le tableau de pilotes
+    pid_t tabPID[MAX_PILOTES]; // Tableau de pid
     //struct Pilote *piloteShm = &Pilote; // Pointeur vers une structure de type pilote
 
     // Variable du sémaphore
