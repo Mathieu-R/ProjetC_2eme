@@ -218,18 +218,21 @@ int main(int argc, char const *argv[]) {
     
     for (int k = 0; k < MAX_PILOTES; k++) {
         pid = fork(); // On fork
+        tabPID[k] = pid;
 
         if (pid == -1) {
             printf("Erreur lors du fork()\n");
             return 0;
         }
         if (pid == 0) { // fils
-            printf("%d: PID => %d\n", k+1, getpid());
+            //printf("%d: PID => %d\n", k+1, getpid());
             break; // Break sinon les processus fils vont aussi se forker
         } else { // père
             /* rien */
         }
     }
+
+    pause();
 
     /* 
      * Les 7 événements de la course
