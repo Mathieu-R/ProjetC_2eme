@@ -226,7 +226,10 @@ int main(int argc, char const *argv[]) {
 
         if (tabPID[k] == 0) { // Fils
 
-            printf("%d: %d\n", k, getpid());
+            
+            pilotesTab[k].pilote_id = pilotes_numbers[k]; // Initialise le numéro du pilote
+            run(&pilotesTab[k], "Practices");
+            exit(0);
 
             /* 
             * Les 7 événements de la course
@@ -300,13 +303,19 @@ int main(int argc, char const *argv[]) {
             } /* fin des 7 événements de courses */ 
 
         } else { // Père
-            sem_destroy(&semaph); // Détruit le sémaphore
-            shmdt(pilotesTab); // Détache la mémoire partagée
-            shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
+            
         }
 
-        printf("tour suivant");
-    } /* Fin de la boucle des 22 processes */ 
+    } /* Fin de la boucle des 22 processes */
+
+    printf("P1:\n");
+    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
+    sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
+    showResults(mainRun, MAX_PILOTES); 
+
+    sem_destroy(&semaph); // Détruit le sémaphore
+    shmdt(pilotesTab); // Détache la mémoire partagée
+    shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 
 	return 0;
 }
