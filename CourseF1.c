@@ -176,7 +176,6 @@ int main(int argc, char const *argv[]) {
 	int shmid; // SH MEM id
     struct Pilote *pilotesTab; // Pointeur vers le tableau de pilotes
     pid_t tabPID[MAX_PILOTES]; // Tableau de pid
-    //struct Pilote *piloteShm = &Pilote; // Pointeur vers une structure de type pilote
 
     // Variable du sémaphore
     sem_t semaph; // Sémaphore
@@ -215,98 +214,102 @@ int main(int argc, char const *argv[]) {
     /**
      * création des 22 processus à l'aide du fork 
      */
-    
-    for (int k = 0; k < MAX_PILOTES; k++) {
-        pid = fork(); // On fork
-        tabPID[k] = pid;
 
-        if (pid == -1) {
+    for (int k = 0; k < MAX_PILOTES; k++) { // 22 processes
+
+        tabPID[k] = fork(); // On fork 
+        
+        if (tabPID[k] == -1) { // Erreur
             printf("Erreur lors du fork()\n");
             return 0;
         }
-        if (pid == 0) { // fils
-            //printf("%d: PID => %d\n", k+1, getpid());
-            break; // Break sinon les processus fils vont aussi se forker
-        } else { // père
-            /* rien */
+
+        if (tabPID[k] == 0) { // Fils
+
+            printf("%d: %d\n", k, getpid());
+
+            /* 
+            * Les 7 événements de la course
+            */
+
+            /*for (int i = 1; i <= 7; i++) {
+
+                switch(i) {
+                    case 1: // P1
+                    case 2: // P2
+                    case 3: // P3
+                            for (int j = 0; j < MAX_PILOTES; j++) {
+                                pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
+                                run(&pilotesTab[j], "Practices");
+                            }
+
+                            printf("P%d:\n", i);
+                            fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
+                            sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
+                            showResults(mainRun, MAX_PILOTES);
+
+                            break;
+                        case 4: // Q1
+                            for (int j = 0; j < MAX_PILOTES; j++) {
+                                run(&pilotesTab[j], "Qualifs");
+                            }
+
+                            printf("Q1\n");
+                            fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                            sem_post(&semaph);
+                            showResults(mainRun, MAX_PILOTES);
+
+                            
+                            fillTab(Q2, mainRun, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
+                            break;
+                        case 5: // Q2
+                            for (int j = 0; j < 16; j++) {
+                                run(&pilotesTab[j], "Qualifs");
+                            }
+
+                            printf("Q2\n");
+                            sem_post(&semaph);
+                            showResults(Q2, 16);
+
+                            fillTab(Q3, Q2, 0, 10); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
+                            break;
+                        case 6: // Q3
+                            for (int j = 0; j < 10; j++) {
+                                run(&pilotesTab[j], "Qualifs");
+                            }
+
+                            printf("Q3\n");
+                            showResults(Q3, 10);
+                            break;
+                        case 7: // Race
+                            // Crée la grille de départ
+                            fillTab(mainRun, Q3, 0, 10); // Remplis les 10 premiers de la Q3
+                            fillTab(mainRun, Q2, 10, 16); // Remplis les 6 suivants de la Q2
+
+                            for (int j = 0; j < MAX_PILOTES; j++) {
+                                run(&pilotesTab[j], "Race");
+                            }
+
+                            printf("Race: \n");
+                            fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                            sem_post(&semaph);
+                            showResults(mainRun, MAX_PILOTES);
+                            break;
+                            
+                } 
+            } /* fin des 7 événements de courses */ 
+
+            b;
+
+        } else { // Père
+            sem_destroy(&semaph); // Détruit le sémaphore
+            shmdt(pilotesTab); // Détache la mémoire partagée
+            shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
         }
-    }
 
-    pause();
+        printf("tour suivant");
+    } /* Fin de la boucle des 22 processes */ 
 
-    /* 
-     * Les 7 événements de la course
-     */
-
-    for (int i = 1; i <= 7; i++) {
-
-           switch(i) {
-               case 1: // P1
-               case 2: // P2
-               case 3: // P3
-                    for (int j = 0; j < MAX_PILOTES; j++) {
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
-                    }
-
-                    printf("P%d:\n", i);
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
-                    sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
-                    showResults(mainRun, MAX_PILOTES);
-
-                    break;
-                case 4: // Q1
-	                for (int j = 0; j < MAX_PILOTES; j++) {
-                        run(&pilotesTab[j], "Qualifs");
-                    }
-
-                    printf("Q1\n");
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    sem_post(&semaph);
-                    showResults(mainRun, MAX_PILOTES);
-
-                    
-                    fillTab(Q2, mainRun, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
-                    break;
-                case 5: // Q2
-                	for (int j = 0; j < 16; j++) {
-                        run(&pilotesTab[j], "Qualifs");
-                    }
-
-                    printf("Q2\n");
-                    sem_post(&semaph);
-      				showResults(Q2, 16);
-
-                    fillTab(Q3, Q2, 0, 10); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
-                    break;
-                case 6: // Q3
-                     for (int j = 0; j < 10; j++) {
-                        run(&pilotesTab[j], "Qualifs");
-                    }
-
-                    printf("Q3\n");
-                    showResults(Q3, 10);
-                    break;
-                case 7: // Race
-					// Crée la grille de départ
-                	fillTab(mainRun, Q3, 0, 10); // Remplis les 10 premiers de la Q3
-                	fillTab(mainRun, Q2, 10, 16); // Remplis les 6 suivants de la Q2
-
-                     for (int j = 0; j < MAX_PILOTES; j++) {
-                        run(&pilotesTab[j], "Race");
-                    }
-
-                    printf("Race: \n");
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    sem_post(&semaph);
-                    showResults(mainRun, MAX_PILOTES);
-                    break;
-                    
-           } 
-    }
-    sem_destroy(&semaph); // Détruit le sémaphore
-    shmdt(pilotesTab); // Détache la mémoire partagée
-    shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 	return 0;
 }
 
