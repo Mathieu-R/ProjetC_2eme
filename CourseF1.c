@@ -206,7 +206,7 @@ int main(int argc, char const *argv[]) {
      */
 
     // initialisation du sémaphore
-    if (sem_init(&semaph, 1, 1)) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
+    if (sem_init(&semaph, 1, 1) == -1) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
         printf("Erreur: erreur lors de l'initialisation du sémaphore'");
         return 0;
     }
