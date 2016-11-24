@@ -224,7 +224,7 @@ int main(int argc, char const *argv[]) {
             case 3: // P3
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        printf("P%d:\n", i);
+                        tabPID[j] = fork();
 
                         if (tabPID[j] == -1) { // Erreur
                             printf("Erreur lors du fork()\n");
@@ -255,7 +255,7 @@ int main(int argc, char const *argv[]) {
                 case 4: // Q1
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        printf("P%d:\n", i);
+                        tabPID[j] = fork();
 
                         if (tabPID[j] == -1) { // Erreur
                             printf("Erreur lors du fork()\n");
@@ -288,7 +288,7 @@ int main(int argc, char const *argv[]) {
                 case 5: // Q2
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        printf("P%d:\n", i);
+                        tabPID[j] = fork();
 
                         if (tabPID[j] == -1) { // Erreur
                             printf("Erreur lors du fork()\n");
@@ -320,7 +320,7 @@ int main(int argc, char const *argv[]) {
                 case 6: // Q3
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        printf("P%d:\n", i);
+                        tabPID[j] = fork();
 
                         if (tabPID[j] == -1) { // Erreur
                             printf("Erreur lors du fork()\n");
@@ -354,7 +354,7 @@ int main(int argc, char const *argv[]) {
 
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        printf("P%d:\n", i);
+                        tabPID[j] = fork();
 
                         if (tabPID[j] == -1) { // Erreur
                             printf("Erreur lors du fork()\n");
