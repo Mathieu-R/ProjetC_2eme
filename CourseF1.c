@@ -299,8 +299,6 @@ int main(int argc, char const *argv[]) {
                 } 
             } /* fin des 7 événements de courses */ 
 
-            b;
-
         } else { // Père
             sem_destroy(&semaph); // Détruit le sémaphore
             shmdt(pilotesTab); // Détache la mémoire partagée
