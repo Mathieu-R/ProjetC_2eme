@@ -226,7 +226,6 @@ int main(int argc, char const *argv[]) {
 
         if (tabPID[k] == 0) { // Fils
 
-            
             pilotesTab[k].pilote_id = pilotes_numbers[k]; // Initialise le numéro du pilote
             run(&pilotesTab[k], "Practices");
             exit(0);
