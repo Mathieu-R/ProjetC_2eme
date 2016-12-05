@@ -24,6 +24,7 @@ typedef struct Pilote {
 
     // Meilleur temps pour le circuit complet
     int best;
+    int totalTime;
 
     int isPit;
     int hasGivenUp;

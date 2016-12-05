@@ -95,6 +95,7 @@ int run(Pilote *p, char* name) {
     p->s3 =  3 * 60 * 3600 + 1;
     p->bestS3 =  3 * 60 * 3600 + 1;
     p->best =  3 * 60 * 3600 + 1;
+    p->totalTime = 0;
     p->isPit = 0;
     p->hasGivenUp = 0;
     p->hasGivenUpDuringRace = 0;
@@ -155,7 +156,11 @@ int run(Pilote *p, char* name) {
         if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
 
 
-        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie	
+        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
+
+        if ((strcmp(name, "Race") == 0)) {
+            p->totalTime += lap;
+        }	
 
     } // Fin de la boucle
 	
