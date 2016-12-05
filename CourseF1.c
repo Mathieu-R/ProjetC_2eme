@@ -213,14 +213,14 @@ int main(int argc, char const *argv[]) {
 
 
     /* 
-    * Les 7 événements de la course
-    */
+     * Les 7 événements de la course
+     */
 
     for (int i = 1; i <= 7; i++) {
 
         switch(i) {
             case 1: // P1
-            case 2: // P2
+            case 2:  // P2
             case 3: // P3
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
@@ -237,19 +237,16 @@ int main(int argc, char const *argv[]) {
                             run(&pilotesTab[j], "Practices");
                             exit(0);
                  
+                        } 
 
-                        } else { // Père
-                            /* rien lololololol */
-                        }
-
-                        tabPID[j] = fork();
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
                     } /* Fin des 22 processus */
                     
+                    printf("P%d\n", i);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
                     sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
                     showResults(mainRun, MAX_PILOTES);
+
+                   
 
                     break;
                 case 4: // Q1
@@ -263,25 +260,17 @@ int main(int argc, char const *argv[]) {
                         }
 
                         if (tabPID[j] == 0) { // Fils
-
                             run(&pilotesTab[j], "Qualifs");
                             exit(0);
-                 
-
-                        } else { // Père
-                            /* rien lololololol */
                         }
 
-                        tabPID[j] = fork();
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
                     } /* Fin des 22 processus */
 
                     printf("Q1\n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
                     sem_post(&semaph);
                     showResults(mainRun, MAX_PILOTES);
-                    
+
                     fillTab(Q2, mainRun, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
 
                     break;
@@ -296,18 +285,10 @@ int main(int argc, char const *argv[]) {
                         }
 
                         if (tabPID[j] == 0) { // Fils
-
                             run(&pilotesTab[j], "Qualifs");
                             exit(0);
-                 
+                        } 
 
-                        } else { // Père
-                            /* rien lololololol */
-                        }
-
-                        tabPID[j] = fork();
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
                     } /* Fin des 22 processus */
 
                     printf("Q2\n");
@@ -328,18 +309,10 @@ int main(int argc, char const *argv[]) {
                         }
 
                         if (tabPID[j] == 0) { // Fils
-
                             run(&pilotesTab[j], "Qualifs");
                             exit(0);
-                 
+                        } 
 
-                        } else { // Père
-                            /* rien lololololol */
-                        }
-
-                        tabPID[j] = fork();
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
                     } /* Fin des 22 processus */
 
                     printf("Q3\n");
@@ -362,18 +335,10 @@ int main(int argc, char const *argv[]) {
                         }
 
                         if (tabPID[j] == 0) { // Fils
-
                             run(&pilotesTab[j], "Race");
                             exit(0);
-                 
-
-                        } else { // Père
-                            /* rien lololololol */
                         }
-
-                        tabPID[j] = fork();
-                        pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                        run(&pilotesTab[j], "Practices");
+                         
                     } /* Fin des 22 processus */
 
                     printf("Race: \n");
