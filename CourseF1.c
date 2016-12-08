@@ -20,6 +20,10 @@
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
 
+sem_t semaph;
+
+srand (time(NULL)); // Utile pour la génération de nombre aléatoire
+
 float ranf() { // PRNG pour des floats [0, 1].
 	float r = rand() / (float) RAND_MAX;
 	return r;
@@ -66,16 +70,25 @@ int genTime(const int min, const int max) {
     return ((rand() % (max-min + 1)) + min); // Génère un nombre entre min et max
 }
 
-int genRaceEvents() { // Décide des faits de courses
-	return rand() % 2; // On génère le nombre, soit 0, soit 1;
+int genRaceEvents(const int max) { // Décide des faits de courses
+	return rand() % max; // On génère le nombre entre 0 et max - 1;
 }
 
-int compare(const void *p1, const void *p2) { // Méthode de comparation pour les temps
+int compareBest(const void *p1, const void *p2) { // Méthode de comparation pour les meilleurs temps
     const struct Pilote *elem1 = p1;
     const struct Pilote *elem2 = p2;
 
     if (elem1->best < elem2->best) return -1;
     if (elem1->best > elem2->best) return 1;
+    return 0;
+}
+
+int compareTot(const void *p1, const void *p2) { // Méthode de comparation pour les temps totaux de la course
+    const struct Pilote *elem1 = p1;
+    const struct Pilote *elem2 = p2;
+
+    if (elem1->totalTime < elem2->totalTime) return -1;
+    if (elem1->totalTime > elem2->totalTime) return 1;
     return 0;
 }
 
@@ -86,6 +99,7 @@ void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int sta
 }
 
 int run(Pilote *p, char* name) {
+    sem_wait(&semaph);
 
     /* Instancie toutes les valeurs (exepté le pilote_id) à 0 */
     p->s1 = 3 * 60 * 3600 + 1;
@@ -105,29 +119,28 @@ int run(Pilote *p, char* name) {
 
         p->isPit = 0; // Au début du tour, il n'est pas aux stands
 
-        if (!p->hasGivenUp) { // Si le pilote n'a pas abandonné
+        if (!(p->hasGivenUp)) { // Si le pilote n'a pas abandonné
 
-            int temp1 = genRaceEvents();
-            int temp2 = genRaceEvents();
-            int temp3 = genRaceEvents();
+            int givingUpEvent = genRaceEvents(15); // Génère un nombre entre 0 et 14
 
-            p->hasGivenUp = genRaceEvents();
-
-            if (((temp1) && (temp2) && (temp3)) && strcmp(name, "Race") == 0) {
+            if (givingUpEvent == 0 && strcmp(name, "Race") == 0) { // Si le pilote a abandonné durant la course
+                printf("abd ? => %d\n", givingUpEvent);
                 p->best = 3 * 60 * 3600;
-                p->hasGivenUp = 1;
+                //p->hasGivenUp = 1;
                 p->hasGivenUpDuringRace = 1;
+                return 0; // Stop le pilote
             }
             
-            if (((temp1) && (temp2) && (temp3))) { // Si le pilote a abandonné, on s'arrête (on sort de la boucle)
+            else if (givingUpEvent == 0) { // Si le pilote a abandonné (mais pas dans la course)
+                printf("abd ? => %d\n", givingUpEvent);
                 p->best = 3 * 60 * 3600 + 3;
                 p->hasGivenUp = 1;
-                return 0;
+                return 0; // Stop le pilote
             }
         }
 
         if (p->numberOfPits < 2) { // Max 2 arrêts
-            p->isPit = genRaceEvents();
+            p->isPit = genRaceEvents(2); // Génère un nombre entre 0 et 1
 
             if (p->isPit) {
                 p->numberOfPits++;
@@ -168,8 +181,6 @@ int run(Pilote *p, char* name) {
 
 int main(int argc, char const *argv[]) {
 
-    srand (time(NULL)); // Utile pour la génération de nombre aléatoire
-
     // Variables pour la course
     int pilotes_numbers[MAX_PILOTES]  = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
     struct Pilote Q2[16]; // Tableau des pilotes lors de la Q2
@@ -183,7 +194,7 @@ int main(int argc, char const *argv[]) {
     pid_t tabPID[MAX_PILOTES]; // Tableau de pid
 
     // Variable du sémaphore
-    sem_t semaph; // Sémaphore
+    //sem_t semaph; // Sémaphore
 
     // Variable du fork
     pid_t pid;
@@ -211,7 +222,7 @@ int main(int argc, char const *argv[]) {
      */
 
     // initialisation du sémaphore
-    if (sem_init(&semaph, 1, 1) == -1) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
+    if (sem_init(&semaph, 0, 1) == -1) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
         printf("Erreur: erreur lors de l'initialisation du sémaphore'");
         return 0;
     }
@@ -246,11 +257,10 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
                     
-                    printf("P%d\n", i);
+                    printf("P%d: \n", i);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
-                    sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
-                    showResults(mainRun, MAX_PILOTES);
-
+                    //sem_post(&semaph); // Indique si la fonction est terminée, on peut donc faire l'opération critique'
+                    showResults(mainRun, MAX_PILOTES, "Practices");
                    
 
                     break;
@@ -271,12 +281,12 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    printf("Q1\n");
+                    printf("Q1: \n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    sem_post(&semaph);
-                    showResults(mainRun, MAX_PILOTES);
+                    //sem_post(&semaph);
+                    showResults(mainRun, MAX_PILOTES, "Qualifs");
 
-                    fillTab(Q2, mainRun, 0, 10); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
+                    fillTab(Q2, mainRun, 0, 9); // Remplis le tableau de Q2 avec les 10 premiers de la Q1
 
                     break;
                 case 5: // Q2
@@ -296,11 +306,11 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    printf("Q2\n");
-                    sem_post(&semaph);
-                    showResults(Q2, 16);
+                    printf("Q2: \n");
+                    //sem_post(&semaph);
+                    showResults(Q2, 16, "Qualifs");
 
-                    fillTab(Q3, Q2, 0, 10); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
+                    fillTab(Q3, Q2, 0, 9); // Remplis le tableau de Q3 avec les 10 premiers de la Q2
 
                     break;
                 case 6: // Q3
@@ -320,15 +330,15 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    printf("Q3\n");
-                    showResults(Q3, 10);
+                    printf("Q3: \n");
+                    showResults(Q3, 10, "Qualifs");
 
                     break;
                 case 7: // Race
 
                     // Crée la grille de départ
-                    fillTab(mainRun, Q3, 0, 10); // Remplis les 10 premiers de la Q3
-                    fillTab(mainRun, Q2, 10, 16); // Remplis les 6 suivants de la Q2
+                    fillTab(mainRun, Q3, 0, 9); // Remplis les 10 premiers de la Q3
+                    fillTab(mainRun, Q2, 10, 15); // Remplis les 6 suivants de la Q2
 
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
@@ -348,8 +358,8 @@ int main(int argc, char const *argv[]) {
 
                     printf("Race: \n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    sem_post(&semaph);
-                    showResults(mainRun, MAX_PILOTES);
+                    //sem_post(&semaph);
+                    showResults(mainRun, MAX_PILOTES, "Race");
 
                     break;
         } 

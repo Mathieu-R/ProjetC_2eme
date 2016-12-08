@@ -3,6 +3,6 @@
 
 /* On déclare seulement les nouvelles fonctions, qui n'apparaissent dans aucun autre fichier .c */
 
-void showResults(struct Pilote tab[], int nbElems);
+void showResults(struct Pilote tab[], int nbElems, char* name);
 
 #endif

@@ -16,26 +16,49 @@
 
 #define MAX_PILOTES 22
 
-void showResults(struct Pilote tab[], int nbElems) {
-    sem_t semaph;
+void showResults(struct Pilote tab[], int nbElems, char* name) {
+    //sem_t semaph;
 
-    sem_wait(&semaph); // Attend que la fonction soit terminée avant que l'opération critique puisse commencée.'
+    //sem_wait(&semaph); // Attend que la fonction soit terminée avant que l'opération critique puisse commencée.'
 
-	qsort(tab, nbElems, sizeof(Pilote), compare); 
 
-    for (int k = 0; k < nbElems; k++) {
 
-    	if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
-    		printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
-            continue;
-    	} 
+    if (strcmp(name, "Race") != 0) {
+        qsort(tab, nbElems, sizeof(Pilote), compareBest);
 
-        printf(
-            "%d%s%d%s%d%s%d%s%d%s\n" ,k+1,
-            ": voiture n°", tab[k].pilote_id,
-            ": (", tab[k].best/60000,"m",
-                (tab[k].best/1000)%60,"s",
-                tab[k].best-(tab[k].best/1000)*1000,"ms)"
-            ); 
+        for (int k = 0; k < nbElems; k++) {
+
+            if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
+                printf("%d: voiture n°%d: Abandon\n", k+1, tab[k].pilote_id);
+                continue;
+            } 
+
+            printf(
+                "%d%s%d%s%d%s%d%s%d%s\n" ,k+1,
+                ": voiture n°", tab[k].pilote_id,
+                ": (", tab[k].best/60000,"m",
+                    (tab[k].best/1000)%60,"s",
+                    tab[k].best-(tab[k].best/1000)*1000,"ms)"
+                ); 
+        }
+    } else {
+        for (int k = 0; k < nbElems; k++) {
+            qsort(tab, nbElems, sizeof(Pilote), compareTot);
+
+            if (tab[k].hasGivenUpDuringRace || tab[k].best == 3 * 60 * 3600 + 3) {
+                printf("voiture n°%d: Abandon\n", tab[k].pilote_id);
+                continue;
+            } 
+
+            printf(
+                "%d%s%d%s%d%s%d%s%d%s\n" ,k+1,
+                ": voiture n°", tab[k].pilote_id,
+                ": (", tab[k].totalTime/60000,"m",
+                    (tab[k].totalTime/1000)%60,"s",
+                    tab[k].totalTime-(tab[k].totalTime/1000)*1000,"ms)"
+                ); 
+        }
     }
+
+    sem_post(&semaph);
 }

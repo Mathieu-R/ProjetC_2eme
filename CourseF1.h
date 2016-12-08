@@ -33,11 +33,14 @@ typedef struct Pilote {
 
 } Pilote;
 
+sem_t semaph;
+
 float ranf();
 float randGaussien(float m, float s);
 int genTime(const int min, const int max);
 int genRaceEvents();
-int compare(const void *p1, const void *p2);
+int compareBest(const void *p1, const void *p2);
+int compareTot(const void *p1, const void *p2);
 int forking(Pilote *p, char* name); 
 int run (Pilote *p, char* name);
 void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int start, const int stop);
