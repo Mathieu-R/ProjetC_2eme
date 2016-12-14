@@ -38,7 +38,7 @@ sem_t semaph;
 float ranf();
 float randGaussien(float m, float s);
 int genTime(const int min, const int max);
-int genRaceEvents();
+int genRaceEvents(const int max);
 int compareBest(const void *p1, const void *p2);
 int compareTot(const void *p1, const void *p2);
 int forking(Pilote *p, char* name); 
