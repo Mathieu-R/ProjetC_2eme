@@ -1,19 +1,18 @@
 /* /!\ COMPILER AVEC -lm && -lpthread /!\ */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <stdio.h> /* input/output */
+#include <stdlib.h> /* standart librabries */
+#include <unistd.h> 
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <time.h>
-#include <string.h>
-#include <math.h>
-//#include <semaphore.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <wait.h>
+#include <time.h> /* time */
+#include <string.h> /* string */
+#include <math.h> /* math */
+#include <sys/types.h> 
+#include <sys/ipc.h> /* inter processus communication */
+#include <sys/sem.h> /* semaphores */
+#include <wait.h> /* wait */
 
 #include "CourseF1.h"
 #include "ResultCourse.h"
@@ -34,7 +33,6 @@ union semun {
 #endif
 
 // Variable du sémaphore
-//sem_t semaph; // Sémaphore
 int semid; // semaphore id
 
 float ranf() { // PRNG pour des floats [0, 1].
@@ -42,11 +40,9 @@ float ranf() { // PRNG pour des floats [0, 1].
 	return r;
 }
 
-/**
-*
-* Cette méthode est basée sur la transformation de Box-Muller: https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
-*
-**/
+/*
+ * Cette méthode est basée sur la transformation de Box-Muller: https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+ */
 float randGaussien(float m, float s) { /* median m, écart-type s */
 	float x1, x2, w, y1, result;
 	static float y2;
@@ -125,7 +121,7 @@ void asciiArt() {
 
 int run(Pilote *p, char* name) {
     struct sembuf sem_op; // sembuf struct for semaphore operations
-    //sem_wait(&semaph);
+
     sem_op.sem_num = 0;
     sem_op.sem_op = -1; // sem - 1
     sem_op.sem_flg = 0;
@@ -201,7 +197,7 @@ int run(Pilote *p, char* name) {
         p->totalTime += lap; // Temps total
 
     } // Fin de la boucle
-	//sem_post(&semaph);
+
     sem_op.sem_num = 0;
     sem_op.sem_op = 1; // sem + 1
     sem_op.sem_flg = 0;
@@ -259,16 +255,16 @@ int main(int argc, char const *argv[]) {
         return 0;
     }
 
-    union semun sem_val; 
+    /*union semun sem_val; 
 
-    sem_val.val = 1; /* valeur du sémaphore à 1 */
+    sem_val.val = 0; /* valeur du sémaphore à 0 */
     
-    int rv = semctl(semid, 0, SETVAL, sem_val); // semid, sem number, operation type, union semun 
+    /*int rv = semctl(semid, 0, SETVAL, sem_val); // semid, sem number, operation type, union semun 
 
     if (rv == -1) { // si valeur de retour == -1
         perror("Erreur lors de l'affectation de la valeur du sémaphore");
         return 0;
-    }
+    }*/
 
 
 
@@ -445,7 +441,7 @@ int main(int argc, char const *argv[]) {
         } 
     } /* fin des 7 événements de courses */
 
-    semctl(semid, IPC_RMID, 0);
+    //semctl(semid, IPC_RMID, 0);
     shmdt(pilotesTab); // Détache la mémoire partagée
     shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 
