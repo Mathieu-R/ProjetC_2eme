@@ -3,16 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-//#include <sys/sem.h>
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include <semaphore.h>
+//#include <semaphore.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 #include <wait.h>
 
 #include "CourseF1.h"
@@ -21,8 +21,21 @@
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
 
+#if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
+/* union semun is defined by including <sys/sem.h> */
+#else
+/* according to X/OPEN we have to define it ourselves */
+union semun {
+        int val;                    /* value for SETVAL */
+        struct semid_ds *buf;       /* buffer for IPC_STAT, IPC_SET */
+        unsigned short int *array;  /* array for GETALL, SETALL */
+        struct seminfo *__buf;      /* buffer for IPC_INFO */
+};
+#endif
+
 // Variable du sémaphore
-sem_t semaph; // Sémaphore
+//sem_t semaph; // Sémaphore
+int semid; // semaphore id
 
 float ranf() { // PRNG pour des floats [0, 1].
 	float r = rand() / (float) RAND_MAX;
@@ -111,7 +124,14 @@ void asciiArt() {
 }
 
 int run(Pilote *p, char* name) {
+    struct sembuf sem_op; // sembuf struct for semaphore operations
     //sem_wait(&semaph);
+    sem_op.sem_num = 0;
+    sem_op.sem_op = -1; // sem - 1
+    sem_op.sem_flg = 0;
+    if (semop(semid, &sem_op, 1) == -1) {
+        perror("Erreur lors de la décrémentation du sémaphore");
+    }
 
     /* Instancie toutes les valeurs (exepté le pilote_id) */
     p->s1 = 3 * 60 * 3600 + 1;
@@ -126,10 +146,6 @@ int run(Pilote *p, char* name) {
     p->hasGivenUp = 0;
     p->hasGivenUpDuringRace = 0;
     p->numberOfPits = 0;
-    //p->hasTime = 0;
-
-    //printf("%d\n", p->totalTime);
-    //pause();
 
     for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
 
@@ -152,7 +168,6 @@ int run(Pilote *p, char* name) {
 
         if (p->numberOfPits < 2) { // Max 2 arrêts
             p->isPit = (genRaceEvents(250) == 1) ? 1 : 0;
-            //p->isPit = genRaceEvents(250); // Génère un nombre entre 0 et 1
 
             if (p->isPit) {
                 p->numberOfPits++;
@@ -186,12 +201,19 @@ int run(Pilote *p, char* name) {
         p->totalTime += lap; // Temps total
 
     } // Fin de la boucle
-	
+	//sem_post(&semaph);
+    sem_op.sem_num = 0;
+    sem_op.sem_op = 1; // sem + 1
+    sem_op.sem_flg = 0;
+    if (semop(semid, &sem_op, 1) == -1) {
+        perror("Erreur lors de l'incrémentation du sémaphore");
+    } 
+
 }
 
 int main(int argc, char const *argv[]) {
-    asciiArt();
-    srand (time(NULL)); // Utile pour la génération de nombre aléatoire
+    asciiArt(); // Because it's beautiful 
+    //srand (time(NULL)); // Utile pour la génération de nombre aléatoire
 
     // Variables pour la course
     int pilotes_numbers[MAX_PILOTES] = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
@@ -219,7 +241,7 @@ int main(int argc, char const *argv[]) {
 	shmid = shmget(key, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644); 
 
 	if (shmid == -1) {
-		printf("Erreur lors de l'allocation de la shared memory.");
+		perror("Erreur lors de l'allocation de la shared memory.");
 		return 0;
 	}
 
@@ -230,11 +252,24 @@ int main(int argc, char const *argv[]) {
      * Mise en place des sémaphores
      */
 
-    // initialisation du sémaphore
-    if (sem_init(&semaph, 1, 0) == -1) { // pointeur vers le sémaphore, 0 => sémaphore partagés entre les threads, valeur initiale du semaphore
-        printf("Erreur: erreur lors de l'initialisation du sémaphore'");
+    semid = semget(12345, 1, IPC_CREAT | 0644); // key, nombres de sémaphores, perm 
+
+    if(semid == -1) { // Erreur
+        perror("Erreur lors de la création du sémaphore");
         return 0;
     }
+
+    union semun sem_val; 
+
+    sem_val.val = 1; /* valeur du sémaphore à 1 */
+    
+    int rv = semctl(semid, 0, SETVAL, sem_val); // semid, sem number, operation type, union semun 
+
+    if (rv == -1) { // si valeur de retour == -1
+        perror("Erreur lors de l'affectation de la valeur du sémaphore");
+        return 0;
+    }
+
 
 
     /* 
@@ -247,6 +282,7 @@ int main(int argc, char const *argv[]) {
             case 1: // P1
             case 2: // P2
             case 3: // P3
+                    //sem_post(&semaph); // sem + 1
                     for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
                         tabPID[j] = fork();
@@ -263,20 +299,14 @@ int main(int argc, char const *argv[]) {
                             run(&pilotesTab[j], "Practices");
                             exit(0);
                  
-                        } else {
-                            //waitpid(tabPID[j], NULL, 0);
-                        }
-
+                        } 
                     } /* Fin des 22 processus */
 
-                    sem_post(&semaph); // sem + 1
                     printf("============================================================================================================== \n");
                     printf("P%d: \n", i);
-                    sem_wait(&semaph); // Attends que l'opération critique soit terminée (sem > 0) => ensuite, sem - 1
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
                     showResults(mainRun, MAX_PILOTES, "Practices");
                     printf("============================================================================================================== \n");
-                    //sem_trywait(&semaph) // sem - 1
                    
 
                     break;
@@ -299,10 +329,8 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    sem_post(&semaph); // sem - 1
                     printf("============================================================================================================== \n");
                     printf("Q1: \n");
-                    sem_wait(&semaph);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
                     showResults(mainRun, MAX_PILOTES, "Qualifs");
                     printf("============================================================================================================== \n");
@@ -312,7 +340,7 @@ int main(int argc, char const *argv[]) {
                     for (int i = 0; i < 16; i++) {
                         // mainRun a été trié
                         // trie le tableau de pilote_id
-                        // aved les 15 premiers pilotes_id de Q1
+                        // avec les 15 premiers pilotes_id de Q1
                         pilotes_numbers[i] = mainRun[i].pilote_id;
                     }
 
@@ -334,10 +362,8 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    sem_post(&semaph); // sem - 1
                     printf("============================================================================================================== \n");
                     printf("Q2: \n");
-                    sem_wait(&semaph);
                     fillTab(Q2, pilotesTab, 0, 16);
                     showResults(Q2, 16, "Qualifs");
                     printf("============================================================================================================== \n");
@@ -366,10 +392,8 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
-                    sem_post(&semaph); // sem - 1
                     printf("============================================================================================================== \n");
                     printf("Q3: \n");
-                    sem_wait(&semaph);
                     fillTab(Q3, pilotesTab, 0, 10);
                     showResults(Q3, 10, "Qualifs");
                     printf("============================================================================================================== \n");
@@ -383,12 +407,12 @@ int main(int argc, char const *argv[]) {
                         pilotes_numbers[i] = Q3[i].pilote_id;
                     }
 
-                    for (int i = 10; i < 15; i++) {
-                        // 5 suivants (Q2)
+                    for (int i = 10; i < 16; i++) {
+                        // 6 suivants (Q2)
                         pilotes_numbers[i] = Q2[i].pilote_id;
                     }
 
-                    for (int i = 15; i < MAX_PILOTES; i++) {
+                    for (int i = 16; i < MAX_PILOTES; i++) {
                         // Les derniers (Q1)
                         pilotes_numbers[i] = mainRun[i].pilote_id;
                     }
@@ -411,10 +435,8 @@ int main(int argc, char const *argv[]) {
                          
                     } /* Fin des 22 processus */
 
-                    sem_post(&semaph);
                     printf("============================================================================================================== \n");
                     printf("Race: \n");
-                    sem_wait(&semaph);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
                     showResults(mainRun, MAX_PILOTES, "Race");
                     printf("============================================================================================================== \n");
@@ -423,7 +445,7 @@ int main(int argc, char const *argv[]) {
         } 
     } /* fin des 7 événements de courses */
 
-    sem_destroy(&semaph); // Détruit le sémaphore
+    semctl(semid, IPC_RMID, 0);
     shmdt(pilotesTab); // Détache la mémoire partagée
     shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
 

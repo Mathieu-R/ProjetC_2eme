@@ -33,8 +33,6 @@ typedef struct Pilote {
 
 } Pilote;
 
-sem_t semaph;
-
 float ranf();
 float randGaussien(float m, float s);
 int genTime(const int min, const int max);
