@@ -101,6 +101,15 @@ int compareTot(const void *p1, const void *p2) { // Méthode de comparation pour
     return 0;
 }
 
+/**
+ * Attend qu'un nombre spécifié de processus enfant soit fini
+ */
+void waitChildren(const int max) {
+    for (int i = 0; i < max; i++) {
+        wait(NULL);
+    }
+}
+
 void fillTab(struct Pilote tabToFill[], struct Pilote tabFiller[], const int start, const int stop) {
     for (int i = start; i < stop; i++) {
         tabToFill[i] = tabFiller[i];
@@ -120,14 +129,6 @@ void asciiArt() {
 }
 
 int run(Pilote *p, char* name) {
-    struct sembuf sem_op; // sembuf struct for semaphore operations
-
-    sem_op.sem_num = 0;
-    sem_op.sem_op = -1; // sem - 1
-    sem_op.sem_flg = 0;
-    if (semop(semid, &sem_op, 1) == -1) {
-        perror("Erreur lors de la décrémentation du sémaphore");
-    }
 
     /* Instancie toutes les valeurs (exepté le pilote_id) */
     p->s1 = 3 * 60 * 3600 + 1;
@@ -198,13 +199,6 @@ int run(Pilote *p, char* name) {
 
     } // Fin de la boucle
 
-    sem_op.sem_num = 0;
-    sem_op.sem_op = 1; // sem + 1
-    sem_op.sem_flg = 0;
-    if (semop(semid, &sem_op, 1) == -1) {
-        perror("Erreur lors de l'incrémentation du sémaphore");
-    } 
-
 }
 
 int main(int argc, char const *argv[]) {
@@ -244,30 +238,6 @@ int main(int argc, char const *argv[]) {
     // Attache la shared memory
 	pilotesTab = shmat(shmid, NULL, 0);
 
-    /**
-     * Mise en place des sémaphores
-     */
-
-    semid = semget(12345, 1, IPC_CREAT | 0644); // key, nombres de sémaphores, perm 
-
-    if(semid == -1) { // Erreur
-        perror("Erreur lors de la création du sémaphore");
-        return 0;
-    }
-
-    /*union semun sem_val; 
-
-    sem_val.val = 0; /* valeur du sémaphore à 0 */
-    
-    /*int rv = semctl(semid, 0, SETVAL, sem_val); // semid, sem number, operation type, union semun 
-
-    if (rv == -1) { // si valeur de retour == -1
-        perror("Erreur lors de l'affectation de la valeur du sémaphore");
-        return 0;
-    }*/
-
-
-
     /* 
      * Les 7 événements de la course
      */
@@ -298,6 +268,8 @@ int main(int argc, char const *argv[]) {
                         } 
                     } /* Fin des 22 processus */
 
+                    waitChildren(MAX_PILOTES);
+
                     printf("============================================================================================================== \n");
                     printf("P%d: \n", i);
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
@@ -325,6 +297,7 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
+                    waitChildren(MAX_PILOTES);
                     printf("============================================================================================================== \n");
                     printf("Q1: \n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
@@ -358,6 +331,7 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
+                    waitChildren(16);
                     printf("============================================================================================================== \n");
                     printf("Q2: \n");
                     fillTab(Q2, pilotesTab, 0, 16);
@@ -388,6 +362,7 @@ int main(int argc, char const *argv[]) {
 
                     } /* Fin des 22 processus */
 
+                    waitChildren(10);
                     printf("============================================================================================================== \n");
                     printf("Q3: \n");
                     fillTab(Q3, pilotesTab, 0, 10);
@@ -431,6 +406,7 @@ int main(int argc, char const *argv[]) {
                          
                     } /* Fin des 22 processus */
 
+                    waitChildren(MAX_PILOTES);
                     printf("============================================================================================================== \n");
                     printf("Race: \n");
                     fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
