@@ -9,7 +9,6 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
-#include <semaphore.h>
 
 #include "CourseF1.h"
 #include "ResultCourse.h"

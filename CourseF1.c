@@ -3,7 +3,7 @@
 #include <stdio.h> /* input/output */
 #include <stdlib.h> /* standart librabries */
 #include <unistd.h> 
-#include <sys/shm.h>
+#include <sys/shm.h> /* shared memory */
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h> /* time */
@@ -19,18 +19,6 @@
 
 #define MAX_PILOTES 22
 #define MAX_TOURS 44
-
-#if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
-/* union semun is defined by including <sys/sem.h> */
-#else
-/* according to X/OPEN we have to define it ourselves */
-union semun {
-        int val;                    /* value for SETVAL */
-        struct semid_ds *buf;       /* buffer for IPC_STAT, IPC_SET */
-        unsigned short int *array;  /* array for GETALL, SETALL */
-        struct seminfo *__buf;      /* buffer for IPC_INFO */
-};
-#endif
 
 // Variable du sémaphore
 int semid; // semaphore id
@@ -125,7 +113,6 @@ void asciiArt() {
  printf(" dP        d88P     dP        dP       `88888P' 88 `88888P' `88888P'   dP   \n");
  printf("oooooooooooooooooooooooooooooooooooooooooooooooo88~ooooooooooooooooooooooooo\n");
  printf("                                                dP                          \n");
-
 }
 
 int run(Pilote *p, char* name) {
@@ -203,7 +190,6 @@ int run(Pilote *p, char* name) {
 
 int main(int argc, char const *argv[]) {
     asciiArt(); // Because it's beautiful 
-    //srand (time(NULL)); // Utile pour la génération de nombre aléatoire
 
     // Variables pour la course
     int pilotes_numbers[MAX_PILOTES] = {44, 6, 5, 7, 3, 33, 19, 77, 11, 27, 26, 55, 14, 22, 9, 12, 20, 30, 8, 21, 31, 94}; // Tableau contenant les numéro des pilotes
@@ -212,7 +198,6 @@ int main(int argc, char const *argv[]) {
     struct Pilote mainRun[MAX_PILOTES]; // Tableau des pilotes pour les autres séances
 
     // Variables de la shared memory
-	key_t key; // Clé
 	int shmid = 0; // SH MEM id
     struct Pilote *pilotesTab; // Pointeur vers le tableau de pilotes
 
@@ -223,12 +208,9 @@ int main(int argc, char const *argv[]) {
     /**
      * Mise en place de la shared memory
      */
-    
-    // Génération de la clé pour la shared memory
-    key = ftok(argv[0], 123); // argv[O] => nom du programme lancé, ID (char)
 
     // Initialisation de la shared memory
-	shmid = shmget(key, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644); 
+	shmid = shmget(IPC_PRIVATE, MAX_PILOTES * sizeof(Pilote), IPC_CREAT | 0644); 
 
 	if (shmid == -1) {
 		perror("Erreur lors de l'allocation de la shared memory.");
@@ -417,9 +399,8 @@ int main(int argc, char const *argv[]) {
         } 
     } /* fin des 7 événements de courses */
 
-    //semctl(semid, IPC_RMID, 0);
-    shmdt(pilotesTab); // Détache la mémoire partagée
-    shmctl(shmid, IPC_RMID, 0); // Libère la mémoire partagé
+    shmdt(pilotesTab); // Détache la mémoire partagée de l'espace d'adresse du processus
+    shmctl(shmid, IPC_RMID, 0); // Libère le segment de mémoire partagé
 
 	return 0;
 }
