@@ -62,6 +62,7 @@ void showResults(struct Pilote tab[], int nbElems, char* name) {
 
     } else { // IN race
         qsort(tab, nbElems, sizeof(Pilote), compareTot);
+        //for (int i = 0; i < nbElems; i++)
         for (int k = 0; k < nbElems; k++) {
             
             if (!(tab[k].hasGivenUpDuringRace)) {
