@@ -76,10 +76,18 @@ void showResults(struct Pilote tab[], int nbElems, char* name) {
                     tab[k].totalTime/60000, (tab[k].totalTime/1000)%60, tab[k].totalTime-(tab[k].totalTime/1000)*1000
                 ); 
             }
+
+            if (tab[k].hasGivenUpDuringRace) {
+                printf("%d) voiture n°%d: DNF (n'a pas pu finir l'entiereté de la course pour cause d'abandon)\n",
+                    k+1,
+                    tab[k].pilote_id
+                );
+                //continue;
+            } 
             
         }
 
-        for (int k = 0; k < nbElems; k++) {
+        /*for (int k = 0; k < nbElems; k++) {
             if (tab[k].hasGivenUpDuringRace) {
                 printf("%d) voiture n°%d: DNF (n'a pas pu finir l'entiereté de la course pour cause d'abandon)\n",
                     k+1,
@@ -87,6 +95,6 @@ void showResults(struct Pilote tab[], int nbElems, char* name) {
                 );
                 continue;
             } 
-        }
+        }*/
     }
 }

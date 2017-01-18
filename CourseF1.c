@@ -1,4 +1,4 @@
-/* /!\ COMPILER AVEC -lm && -lpthread /!\ */
+/* /!\ COMPILER AVEC -lm /!\ */
 
 #include <stdio.h> /* input/output */
 #include <stdlib.h> /* standart librabries */
@@ -83,7 +83,11 @@ int compareBest(const void *p1, const void *p2) { // Méthode de comparation pou
 int compareTot(const void *p1, const void *p2) { // Méthode de comparation pour les temps totaux de la course
     const struct Pilote *elem1 = p1;
     const struct Pilote *elem2 = p2;
+    /* Tri majeur sur l'abandon */
+    if (elem1->hasGivenUpDuringRace < elem2->hasGivenUpDuringRace) return -1;
+    if (elem1->hasGivenUpDuringRace > elem2->hasGivenUpDuringRace) return 1;
 
+    /* Tri mineur sur le temps */
     if (elem1->totalTime < elem2->totalTime) return -1;
     if (elem1->totalTime > elem2->totalTime) return 1;
     return 0;
