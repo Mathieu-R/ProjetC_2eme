@@ -61,7 +61,7 @@ void showResults(struct Pilote tab[], int nbElems, char* name) {
 
     } else { // IN race
         qsort(tab, nbElems, sizeof(Pilote), compareTot);
-        //for (int i = 0; i < nbElems; i++)
+        
         for (int k = 0; k < nbElems; k++) {
             
             if (!(tab[k].hasGivenUpDuringRace)) {
@@ -82,19 +82,8 @@ void showResults(struct Pilote tab[], int nbElems, char* name) {
                     k+1,
                     tab[k].pilote_id
                 );
-                //continue;
             } 
             
         }
-
-        /*for (int k = 0; k < nbElems; k++) {
-            if (tab[k].hasGivenUpDuringRace) {
-                printf("%d) voiture n°%d: DNF (n'a pas pu finir l'entiereté de la course pour cause d'abandon)\n",
-                    k+1,
-                    tab[k].pilote_id
-                );
-                continue;
-            } 
-        }*/
     }
 }
