@@ -13,6 +13,7 @@
 #include <sys/ipc.h> /* inter processus communication */
 #include <sys/sem.h> /* semaphores */
 #include <wait.h> /* wait */
+#include <semaphore.h> /* semaphores */
 
 #include "CourseF1.h"
 #include "ResultCourse.h"
@@ -22,6 +23,7 @@
 
 // Variable du sémaphore
 int semid; // semaphore id
+sem_t semaph; // semaphore
 
 float ranf() { // PRNG pour des floats [0, 1].
 	float r = rand() / (float) RAND_MAX;
@@ -119,9 +121,9 @@ void asciiArt() {
  printf("                                                dP                          \n");
 }
 
-int run(Pilote *p, char* name) {
-
+void initEvent(Pilote *p, int num) {
     /* Instancie toutes les valeurs (exepté le pilote_id) */
+    p->pilote_id = num; // Initialise le numéro du pilote, avant le 1er tour
     p->s1 = 3 * 60 * 3600 + 1;
     p->bestS1 =  3 * 60 * 3600 + 1;
     p->s2 =  3 * 60 * 3600 + 1;
@@ -134,61 +136,61 @@ int run(Pilote *p, char* name) {
     p->hasGivenUp = 0;
     p->hasGivenUpDuringRace = 0;
     p->numberOfPits = 0;
+}
 
-    for (int i = 0; i < MAX_TOURS; i++) { // Pour chaque tour
+int run(Pilote *p, char* name) {
+    sem_wait(&semaph);
 
-        p->isPit = 0; // Au début du tour, il n'est pas aux stands
+    p->isPit = 0; // Au début du tour, il n'est pas aux stands
 
-        if (!(p->hasGivenUp)) { // Si le pilote n'a pas abandonné
+    if (!(p->hasGivenUp)) { // Si le pilote n'a pas abandonné
 
-            int givingUpEvent = genRaceEvents(500); // Génère un nombre entre 0 et 14
+        int givingUpEvent = genRaceEvents(500); // Génère un nombre entre 0 et 14
 
-            if (givingUpEvent == 14 && strcmp(name, "Race") == 0) { // Si le pilote a abandonné durant la course
-                p->hasGivenUpDuringRace = 1;
-                return 0; // Stop le pilote
-            }
-            
-            else if (givingUpEvent == 14) { // Si le pilote a abandonné (mais pas dans la course)
-                p->hasGivenUp = 1;
-                return 0; // Stop le pilote
-            }
+        if (givingUpEvent == 14 && strcmp(name, "Race") == 0) { // Si le pilote a abandonné durant la course
+            p->hasGivenUpDuringRace = 1;
+            return 0; // Stop le pilote
         }
-
-        if (p->numberOfPits < 2) { // Max 2 arrêts
-            p->isPit = (genRaceEvents(250) == 1) ? 1 : 0;
-
-            if (p->isPit) {
-                p->numberOfPits++;
-                if ((strcmp(name, "Practices") == 0) || (strcmp(name, "Qualifs") == 0)) continue; // On passe à l'itération suivante
-            }
-            
+        
+        else if (givingUpEvent == 14) { // Si le pilote a abandonné (mais pas dans la course)
+            p->hasGivenUp = 1;
+            return 0; // Stop le pilote
         }
+    }
 
-        // On peut faire un tour du circuit
-        int S1 = 0.275 * (103000 + randGaussien(5000, 2000)); // Portion de circuit * Courbe de Gausse (temps min + fun(médian, écart-type))
-        int S2 = 0.459 * (103000 + randGaussien(5000, 2000)); 
-        int S3 = 0.266 * (103000 + randGaussien(5000, 2000)); 
+    if (p->numberOfPits < 2) { // Max 2 arrêts
+        p->isPit = (genRaceEvents(250) == 1) ? 1 : 0;
 
-        if ((strcmp(name, "Race") == 0) && (p->isPit)) { // Si l'on est en course et que le pilote est au stand
-            S1 += genTime(20 * 3600, 25 * 3600); // On rajoute entre 20 et 25sec au Secteur 1
+        if (p->isPit) {
+            p->numberOfPits++;
+            if ((strcmp(name, "Practices") == 0) || (strcmp(name, "Qualifs") == 0)) return 0; // On passe à l'itération suivante
         }
+        
+    }
 
-        p->s1 = S1; // On notifie le temps du S1
-        p->s2 = S2; // On notifie le temps du S2
-        p->s3 = S3; // etc...
+    // On peut faire un tour du circuit
+    int S1 = 0.275 * (103000 + randGaussien(5000, 2000)); // Portion de circuit * Courbe de Gausse (temps min + fun(médian, écart-type))
+    int S2 = 0.459 * (103000 + randGaussien(5000, 2000)); 
+    int S3 = 0.266 * (103000 + randGaussien(5000, 2000)); 
 
-        int lap = S1 + S2 + S3;
+    if ((strcmp(name, "Race") == 0) && (p->isPit)) { // Si l'on est en course et que le pilote est au stand
+        S1 += genTime(20 * 3600, 25 * 3600); // On rajoute entre 20 et 25sec au Secteur 1
+    }
 
-        if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
-        if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
-        if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
+    p->s1 = S1; // On notifie le temps du S1
+    p->s2 = S2; // On notifie le temps du S2
+    p->s3 = S3; // etc...
+
+    int lap = S1 + S2 + S3;
+
+    if (p->bestS1 > S1) p->bestS1 = S1; // Si c'est son meilleur S1, on modifie le meilleur s1
+    if (p->bestS2 > S2) p->bestS2 = S2; // Si c'est son meilleur S2, on modifie le meilleur s2
+    if (p->bestS3 > S3) p->bestS3 = S3; // Si c'est son meilleur S3, on modifie le meilleur s3
 
 
-        if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
+    if (p->best > lap) p->best = lap; // Si c'est son meilleur temps au tour, on le notifie
 
-        p->totalTime += lap; // Temps total
-
-    } // Fin de la boucle
+    p->totalTime += lap; // Temps total
 
 }
 
@@ -224,6 +226,14 @@ int main(int argc, char const *argv[]) {
     // Attache la shared memory
 	pilotesTab = shmat(shmid, NULL, 0);
 
+    /**
+     * Mise en place des sémaphores
+     */
+
+    semid = sem_init(&semaph, 0, 22);
+
+
+
     /* 
      * Les 7 événements de la course
      */
@@ -235,60 +245,76 @@ int main(int argc, char const *argv[]) {
             case 2: // P2
             case 3: // P3
                     //sem_post(&semaph); // sem + 1
-                    for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
+                    for (int t = 0; t < MAX_TOURS; t++) {
 
-                        tabPID[j] = fork();
+                        printf("============================================================================================================== \n");
+                        printf("P%d - Tour %d: \n", i, t + 1);
 
-                        if (tabPID[j] == -1) { // Erreur
-                            printf("Erreur lors du fork()\n");
-                            return 0;
-                        }
+                        for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        if (tabPID[j] == 0) { // Fils
-                            // http://stackoverflow.com/questions/8623131/why-is-rand-not-so-random-after-fork
-                            srand(time(NULL) ^ (getpid() << 16));
-                            pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                            run(&pilotesTab[j], "Practices");
-                            exit(0);
-                 
-                        } 
-                    } /* Fin des 22 processus */
+                            tabPID[j] = fork();
 
-                    waitChildren(MAX_PILOTES);
+                            if (tabPID[j] == -1) { // Erreur
+                                printf("Erreur lors du fork()\n");
+                                return 0;
+                            }
 
-                    printf("============================================================================================================== \n");
-                    printf("P%d: \n", i);
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
-                    showResults(mainRun, MAX_PILOTES, "Practices");
-                    printf("============================================================================================================== \n");
+                            if (tabPID[j] == 0) { // Fils
+                                if (t == 0) initEvent(&pilotesTab[j], pilotes_numbers[j]);
+                                // http://stackoverflow.com/questions/8623131/why-is-rand-not-so-random-after-fork
+                                srand(time(NULL) ^ (getpid() << 16));
+                                run(&pilotesTab[j], "Practices");
+                                exit(0);
+                     
+                            } 
+                        } /* Fin des 22 processus */
+
+                        //waitChildren(MAX_PILOTES);
+                        sem_post(&semaph);
+                        fillTab(mainRun, pilotesTab, 0, MAX_PILOTES); // Remplis le tableau avec les données de la SM avant le tri + affichage
+                        showResults(mainRun, MAX_PILOTES, "Practices");
+                        printf("============================================================================================================== \n");
+
+                        sleep(1);
+
+
+                    }
                    
 
                     break;
                 case 4: // Q1
-                    for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        tabPID[j] = fork();
+                    for (int t = 0; t < MAX_TOURS; t++) {
 
-                        if (tabPID[j] == -1) { // Erreur
-                            printf("Erreur lors du fork()\n");
-                            return 0;
-                        }
+                        printf("============================================================================================================== \n");
+                        printf("Q1: - Tour %d \n", t + 1);
 
-                        if (tabPID[j] == 0) { // Fils
-                            pilotesTab[j].pilote_id = pilotes_numbers[j]; // Initialise le numéro du pilote
-                            srand(time(NULL) ^ (getpid() << 16));
-                            run(&pilotesTab[j], "Qualifs");
-                            exit(0);
-                        }
+                        for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                    } /* Fin des 22 processus */
+                            tabPID[j] = fork();
 
-                    waitChildren(MAX_PILOTES);
-                    printf("============================================================================================================== \n");
-                    printf("Q1: \n");
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    showResults(mainRun, MAX_PILOTES, "Qualifs");
-                    printf("============================================================================================================== \n");
+                            if (tabPID[j] == -1) { // Erreur
+                                printf("Erreur lors du fork()\n");
+                                return 0;
+                            }
+
+                            if (tabPID[j] == 0) { // Fils
+                                if (t == 0) initEvent(&pilotesTab[j], pilotes_numbers[j]);
+                                srand(time(NULL) ^ (getpid() << 16));
+                                run(&pilotesTab[j], "Qualifs");
+                                exit(0);
+                            }
+
+                        } /* Fin des 22 processus */                        
+
+                        sem_post(&semaph);
+                        fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                        showResults(mainRun, MAX_PILOTES, "Qualifs");
+                        printf("============================================================================================================== \n");
+                        //waitChildren(MAX_PILOTES);
+                        sleep(1);
+
+                    }
 
                     break;
                 case 5: // Q2 => 16 voitures en piste
@@ -299,30 +325,37 @@ int main(int argc, char const *argv[]) {
                         pilotes_numbers[i] = mainRun[i].pilote_id;
                     }
 
-                    for (int j = 0; j < 16; j++) { /* Création des 15 processus */
+                    for (int t = 0; t < MAX_TOURS; t++) {
 
-                        tabPID[j] = fork();
+                        printf("============================================================================================================== \n");
+                        printf("Q2 - Tour %d: \n", t + 1);
 
-                        if (tabPID[j] == -1) { // Erreur
-                            printf("Erreur lors du fork()\n");
-                            return 0;
-                        }
+                        for (int j = 0; j < 16; j++) { /* Création des 15 processus */
 
-                        if (tabPID[j] == 0) { // Fils
-                            srand(time(NULL) ^ (getpid() << 16));
-                            pilotesTab[j].pilote_id = pilotes_numbers[j];
-                            run(&pilotesTab[j], "Qualifs");
-                            exit(0);
-                        } 
+                            tabPID[j] = fork();
 
-                    } /* Fin des 22 processus */
+                            if (tabPID[j] == -1) { // Erreur
+                                printf("Erreur lors du fork()\n");
+                                return 0;
+                            }
 
-                    waitChildren(16);
-                    printf("============================================================================================================== \n");
-                    printf("Q2: \n");
-                    fillTab(Q2, pilotesTab, 0, 16);
-                    showResults(Q2, 16, "Qualifs");
-                    printf("============================================================================================================== \n");
+                            if (tabPID[j] == 0) { // Fils
+                                if (t == 0) initEvent(&pilotesTab[j], pilotes_numbers[j]);
+                                srand(time(NULL) ^ (getpid() << 16));
+                                run(&pilotesTab[j], "Qualifs");
+                                exit(0);
+                            } 
+
+                        } /* Fin des 22 processus */
+                            
+                        //waitChildren(16);
+                        sem_post(&semaph);
+                        fillTab(Q2, pilotesTab, 0, 16);
+                        showResults(Q2, 16, "Qualifs");
+                        printf("============================================================================================================== \n");
+                        sleep(1);
+
+                    }
 
                     break;
                 case 6: // Q3 => 10 voitures en piste
@@ -330,30 +363,38 @@ int main(int argc, char const *argv[]) {
                         pilotes_numbers[i] = Q2[i].pilote_id;
                     }
 
-                    for (int j = 0; j < 10; j++) { /* Création des 10 processus */
+                    for (int t = 0; t < MAX_TOURS; t++) {
 
-                        tabPID[j] = fork();
+                        printf("============================================================================================================== \n");
+                        printf("Q3 - Tour %d: \n", t + 1);
 
-                        if (tabPID[j] == -1) { // Erreur
-                            printf("Erreur lors du fork()\n");
-                            return 0;
-                        }
+                        for (int j = 0; j < 10; j++) { /* Création des 10 processus */
 
-                        if (tabPID[j] == 0) { // Fils
-                            srand(time(NULL) ^ (getpid() << 16));
-                            pilotesTab[j].pilote_id = pilotes_numbers[j];
-                            run(&pilotesTab[j], "Qualifs");
-                            exit(0);
-                        } 
+                            tabPID[j] = fork();
 
-                    } /* Fin des 22 processus */
+                            if (tabPID[j] == -1) { // Erreur
+                                printf("Erreur lors du fork()\n");
+                                return 0;
+                            }
 
-                    waitChildren(10);
-                    printf("============================================================================================================== \n");
-                    printf("Q3: \n");
-                    fillTab(Q3, pilotesTab, 0, 10);
-                    showResults(Q3, 10, "Qualifs");
-                    printf("============================================================================================================== \n");
+                            if (tabPID[j] == 0) { // Fils
+                                if (t == 0) initEvent(&pilotesTab[j], pilotes_numbers[j]);
+                                srand(time(NULL) ^ (getpid() << 16));
+                                run(&pilotesTab[j], "Qualifs");
+                                exit(0);
+                            } 
+
+                        } /* Fin des 22 processus */
+
+                        sem_post(&semaph);
+                        fillTab(Q3, pilotesTab, 0, 10);
+                        showResults(Q3, 10, "Qualifs");
+                        printf("============================================================================================================== \n");
+                        //waitChildren(10);
+                        sleep(1);
+
+                    }
+                    
 
                     break;
                 case 7: // Race
@@ -374,30 +415,36 @@ int main(int argc, char const *argv[]) {
                         pilotes_numbers[i] = mainRun[i].pilote_id;
                     }
 
-                    for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
+                    for (int t = 0; t < MAX_TOURS; t++) {
 
-                        tabPID[j] = fork();
+                        printf("============================================================================================================== \n");
+                        printf("Race - Tour %d: \n", t + 1);
 
-                        if (tabPID[j] == -1) { // Erreur
-                            printf("Erreur lors du fork()\n");
-                            return 0;
-                        }
+                        for (int j = 0; j < MAX_PILOTES; j++) { /* Création des 22 processus */
 
-                        if (tabPID[j] == 0) { // Fils
-                            srand(time(NULL) ^ (getpid() << 16));
-                            pilotesTab[j].pilote_id = pilotes_numbers[j];
-                            run(&pilotesTab[j], "Race");
-                            exit(0);
-                        }
-                         
-                    } /* Fin des 22 processus */
+                            tabPID[j] = fork();
 
-                    waitChildren(MAX_PILOTES);
-                    printf("============================================================================================================== \n");
-                    printf("Race: \n");
-                    fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
-                    showResults(mainRun, MAX_PILOTES, "Race");
-                    printf("============================================================================================================== \n");
+                            if (tabPID[j] == -1) { // Erreur
+                                printf("Erreur lors du fork()\n");
+                                return 0;
+                            }
+
+                            if (tabPID[j] == 0) { // Fils
+                                if (t == 0) initEvent(&pilotesTab[j], pilotes_numbers[j]);
+                                srand(time(NULL) ^ (getpid() << 16));
+                                run(&pilotesTab[j], "Race");
+                                exit(0);
+                            }
+                             
+                        } /* Fin des 22 processus */
+
+                        sem_post(&semaph);
+                        fillTab(mainRun, pilotesTab, 0, MAX_PILOTES);
+                        showResults(mainRun, MAX_PILOTES, "Race");
+                        printf("============================================================================================================== \n");
+                        //waitChildren(MAX_PILOTES);
+                        sleep(1);
+                    }
 
                     break;
         } 
